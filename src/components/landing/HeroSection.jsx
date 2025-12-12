@@ -1,85 +1,96 @@
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Zap } from "lucide-react";
 
 export default function HeroSection({ onGetStarted }) {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
-      {/* Abstract background shapes */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -left-32 w-80 h-80 bg-amber-100/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-rose-100/20 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full text-emerald-700 text-sm font-medium mb-8">
-            <Sparkles className="w-4 h-4" />
-            <span>AI-Powered Personalized Nutrition</span>
-          </div>
-        </motion.div>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl md:text-7xl font-light tracking-tight text-slate-900 mb-10"
-        >
-          Your perfect
-          <span className="block font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-            meal plan awaits
-          </span>
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed"
-        >
-          Personalized weekly meal plans that adapt to your body, goals, and preferences. 
-          Science-backed nutrition that evolves with you.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <Button
-            onClick={onGetStarted}
-            size="lg"
-            className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-lg rounded-full shadow-xl shadow-slate-900/10 transition-all hover:shadow-2xl hover:shadow-slate-900/20 hover:-translate-y-0.5"
+    <section className="relative bg-slate-950 text-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 py-24 lg:py-32">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left Content */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7 }}
           >
-            Start Your Journey
-            <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-20 grid grid-cols-3 gap-8 max-w-xl mx-auto"
-        >
-          {[
-            { value: "500+", label: "Curated Recipes" },
-            { value: "±250", label: "Calorie Precision" },
-            { value: "Weekly", label: "Adaptive Plans" }
-          ].map((stat, i) => (
-            <div key={i} className="text-center">
-              <div className="text-3xl font-semibold text-slate-900">{stat.value}</div>
-              <div className="text-sm text-slate-500 mt-1">{stat.label}</div>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
+              <Zap className="w-4 h-4 text-emerald-400" />
+              <span className="text-sm text-emerald-400 font-medium">AI-Powered Nutrition</span>
             </div>
-          ))}
-        </motion.div>
+            
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+              Get Dialled In With
+              <span className="block mt-2 bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                Smart Meal Plans
+              </span>
+            </h1>
+            
+            <p className="text-xl text-slate-400 mb-10 leading-relaxed">
+              Personalized weekly meal plans, macro tracking, and AI-driven recommendations 
+              to help you reach your nutrition goals and build lasting healthy habits.
+            </p>
+
+            <Button
+              size="lg"
+              onClick={onGetStarted}
+              className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all"
+            >
+              Start Your Journey Free
+            </Button>
+
+            {/* Stats */}
+            <div className="mt-12 grid grid-cols-3 gap-8">
+              <div>
+                <div className="text-3xl font-bold text-white">500+</div>
+                <div className="text-sm text-slate-400 mt-1">Expert Recipes</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white">AI</div>
+                <div className="text-sm text-slate-400 mt-1">Recommendations</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white">24/7</div>
+                <div className="text-sm text-slate-400 mt-1">Tracking</div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right Image */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="relative"
+          >
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+              <img
+                src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200"
+                alt="Healthy meal prep"
+                className="w-full h-[600px] object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
+            </div>
+            
+            {/* Floating Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="absolute -bottom-6 -left-6 bg-white rounded-2xl p-6 shadow-xl"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-emerald-600" />
+                </div>
+                <div>
+                  <div className="text-sm text-slate-500">Daily Target</div>
+                  <div className="text-2xl font-bold text-slate-900">2,000 kcal</div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

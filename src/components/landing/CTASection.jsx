@@ -1,43 +1,55 @@
 import React from 'react';
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
 
 export default function CTASection({ onGetStarted }) {
   return (
-    <section className="py-24 bg-slate-900 relative overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl" />
+    <section className="relative py-32 px-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+      {/* Gradient Orbs */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+      <div className="relative max-w-5xl mx-auto text-center">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.7 }}
         >
-          <h2 className="text-4xl md:text-5xl font-light text-white mb-6">
-            Ready to transform your
-            <span className="block font-semibold text-emerald-400">relationship with food?</span>
+          <h2 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+            Start Your Journey
+            <span className="block mt-2 bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+              To Better Health
+            </span>
           </h2>
-          <p className="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-            Join thousands who have discovered the power of personalized nutrition. 
-            Your first week is completely customized to your body and goals.
+          
+          <p className="text-xl text-slate-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Get personalized meal plans in minutes. Track your progress, discover new recipes, 
+            and achieve your nutrition goals with AI-powered recommendations.
           </p>
+          
           <Button
-            onClick={onGetStarted}
             size="lg"
-            className="bg-white hover:bg-slate-100 text-slate-900 px-8 py-6 text-lg rounded-full shadow-2xl transition-all hover:-translate-y-0.5"
+            onClick={onGetStarted}
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-10 py-7 text-lg rounded-xl shadow-2xl hover:shadow-emerald-500/25 transition-all group"
           >
-            Create Your Free Plan
-            <ArrowRight className="ml-2 w-5 h-5" />
+            Get Started Free
+            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
-          <p className="text-slate-500 text-sm mt-6">
-            No credit card required • Takes 2 minutes
-          </p>
+          
+          <div className="flex items-center justify-center gap-8 mt-12 text-slate-400">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span>No credit card required</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span>Start in 2 minutes</span>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>
