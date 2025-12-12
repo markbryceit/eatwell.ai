@@ -6,12 +6,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfWeek, addDays, differenceInDays, parseISO } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight } from "lucide-react";
+import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload } from "lucide-react";
 import DaySelector from '@/components/dashboard/DaySelector';
 import MealPlanCard from '@/components/dashboard/MealPlanCard';
 import CalorieProgress from '@/components/dashboard/CalorieProgress';
 import WeeklyCheckin from '@/components/dashboard/WeeklyCheckin';
 import RecipeModal from '@/components/recipes/RecipeModal';
+import AlternativeMeals from '@/components/dashboard/AlternativeMeals';
 import { motion } from 'framer-motion';
 
 export default function Dashboard() {
@@ -21,6 +22,20 @@ export default function Dashboard() {
   const [showCheckin, setShowCheckin] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showAlternatives, setShowAlternatives] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.log('Error fetching user:', error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // Fetch user profile
   const { data: profiles, isLoading: profileLoading } = useQuery({
@@ -316,6 +331,36 @@ export default function Dashboard() {
     setIsGenerating(false);
   };
 
+  const handleSelectAlternative = async (newRecipe) => {
+    if (!currentPlan || !showAlternatives) return;
+    
+    const { mealType, dayIndex } = showAlternatives;
+    const updatedDays = [...currentPlan.days];
+    updatedDays[dayIndex] = {
+      ...updatedDays[dayIndex],
+      [`${mealType}_recipe_id`]: newRecipe.id
+    };
+
+    // Recalculate total calories
+    const breakfast = getRecipeById(updatedDays[dayIndex].breakfast_recipe_id);
+    const lunch = getRecipeById(updatedDays[dayIndex].lunch_recipe_id);
+    const dinner = getRecipeById(updatedDays[dayIndex].dinner_recipe_id);
+    const snack = getRecipeById(updatedDays[dayIndex].snack_recipe_id);
+    
+    updatedDays[dayIndex].total_calories = 
+      (breakfast?.calories || 0) +
+      (lunch?.calories || 0) +
+      (dinner?.calories || 0) +
+      (snack?.calories || 0);
+
+    await base44.entities.MealPlan.update(currentPlan.id, {
+      days: updatedDays
+    });
+
+    queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
+    setShowAlternatives(null);
+  };
+
   const isLoading = profileLoading || planLoading || recipesLoading;
 
   if (isLoading) {
@@ -355,6 +400,19 @@ export default function Dashboard() {
         }}
       />
 
+      {showAlternatives && (
+        <AlternativeMeals
+          mealType={showAlternatives.mealType}
+          currentRecipe={getRecipeById(todayMeals?.[`${showAlternatives.mealType}_recipe_id`])}
+          targetCalories={profile?.daily_calorie_target || 2000}
+          excludeRecipeIds={Object.values(todayMeals || {})
+            .filter(val => typeof val === 'string')
+            .filter(id => id !== todayMeals?.[`${showAlternatives.mealType}_recipe_id`])}
+          onSelectAlternative={handleSelectAlternative}
+          onClose={() => setShowAlternatives(null)}
+        />
+      )}
+
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -373,6 +431,16 @@ export default function Dashboard() {
               <BookOpen className="w-4 h-4 mr-2" />
               Recipes
             </Button>
+            {user?.role === 'admin' && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(createPageUrl('AdminRecipeUpload'))}
+                className="rounded-xl border-violet-200 text-violet-600 hover:bg-violet-50"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload PDF
+              </Button>
+            )}
             <Button
               onClick={handleGenerateNewPlan}
               disabled={isGenerating}
@@ -434,6 +502,7 @@ export default function Dashboard() {
                           }
                         }}
                         onViewRecipe={() => recipe && setSelectedRecipe(recipe)}
+                        onFindAlternatives={() => setShowAlternatives({ mealType, dayIndex: selectedDay })}
                       />
                     );
                   })}
