@@ -1,10 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Clock, Flame, Users, Star, Check } from "lucide-react";
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import RatingStars from './RatingStars';
 
 export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onToggleFavorite }) {
+  const queryClient = useQueryClient();
+  const [userRating, setUserRating] = useState(0);
+
+  const { data: ratings } = useQuery({
+    queryKey: ['recipeRatings', recipe?.id],
+    queryFn: () => base44.entities.RecipeRating.filter({ recipe_id: recipe?.id }),
+    enabled: !!recipe?.id
+  });
+
+  useEffect(() => {
+    if (ratings && ratings.length > 0) {
+      setUserRating(ratings[0].rating);
+    } else {
+      setUserRating(0);
+    }
+  }, [ratings]);
+
+  const ratingMutation = useMutation({
+    mutationFn: async (newRating) => {
+      if (ratings && ratings.length > 0) {
+        await base44.entities.RecipeRating.update(ratings[0].id, { rating: newRating });
+      } else {
+        await base44.entities.RecipeRating.create({
+          recipe_id: recipe.id,
+          rating: newRating
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipeRatings', recipe?.id] });
+    }
+  });
+
+  const handleRate = (rating) => {
+    setUserRating(rating);
+    ratingMutation.mutate(rating);
+  };
+
   if (!recipe || !isOpen) return null;
 
   return (
@@ -140,6 +181,17 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
                 </ol>
               </div>
             )}
+
+            {/* Rating */}
+            <div className="mb-6 p-4 bg-amber-50 rounded-2xl">
+              <h3 className="font-semibold text-slate-900 mb-3 text-center">Rate this recipe</h3>
+              <div className="flex items-center justify-center gap-3">
+                <RatingStars rating={userRating} onRate={handleRate} size="lg" />
+                {userRating > 0 && (
+                  <span className="text-slate-600 font-medium">{userRating}/5</span>
+                )}
+              </div>
+            </div>
 
             {/* Actions */}
             <div className="flex gap-3 pt-4 border-t border-slate-100">

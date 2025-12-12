@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Clock, Flame, Check, Eye } from "lucide-react";
+import { Star, Clock, Flame, Check, Eye, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function MealPlanCard({ 
@@ -12,7 +12,8 @@ export default function MealPlanCard({
   isFavorite, 
   onToggleFavorite, 
   onMarkComplete,
-  onViewRecipe 
+  onViewRecipe,
+  onFindAlternatives
 }) {
   if (!recipe) {
     return (
@@ -92,30 +93,43 @@ export default function MealPlanCard({
             <span>F: {recipe.fat_g}g</span>
           </div>
 
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex-1 rounded-xl"
-              onClick={onViewRecipe}
-            >
-              <Eye className="w-4 h-4 mr-1" />
-              View
-            </Button>
-            <Button 
-              size="sm" 
-              className={`flex-1 rounded-xl ${isCompleted ? 'bg-emerald-500' : 'bg-slate-900 hover:bg-slate-800'}`}
-              onClick={onMarkComplete}
-            >
-              {isCompleted ? (
-                <>
-                  <Check className="w-4 h-4 mr-1" />
-                  Logged
-                </>
-              ) : (
-                "Log Meal"
-              )}
-            </Button>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 rounded-xl"
+                onClick={onViewRecipe}
+              >
+                <Eye className="w-4 h-4 mr-1" />
+                View
+              </Button>
+              <Button 
+                size="sm" 
+                className={`flex-1 rounded-xl ${isCompleted ? 'bg-emerald-500' : 'bg-slate-900 hover:bg-slate-800'}`}
+                onClick={onMarkComplete}
+              >
+                {isCompleted ? (
+                  <>
+                    <Check className="w-4 h-4 mr-1" />
+                    Logged
+                  </>
+                ) : (
+                  "Log Meal"
+                )}
+              </Button>
+            </div>
+            {onFindAlternatives && (
+              <Button 
+                variant="outline"
+                size="sm" 
+                className="w-full rounded-xl text-violet-600 border-violet-200 hover:bg-violet-50"
+                onClick={onFindAlternatives}
+              >
+                <Sparkles className="w-4 h-4 mr-1" />
+                Find Alternatives
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
