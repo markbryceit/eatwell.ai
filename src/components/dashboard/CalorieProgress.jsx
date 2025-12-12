@@ -1,6 +1,12 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+
+const getProgressColorClass = (percentage) => {
+  if (percentage <= 100) return '[&>div]:bg-emerald-500';
+  if (percentage <= 110) return '[&>div]:bg-amber-500';
+  return '[&>div]:bg-rose-500';
+};
 import { Flame, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 export default function CalorieProgress({ dailyTarget, consumed, weeklyLogs }) {
@@ -44,7 +50,7 @@ export default function CalorieProgress({ dailyTarget, consumed, weeklyLogs }) {
           </div>
           <Progress 
             value={percentage} 
-            className="h-3 bg-slate-100"
+            className={`h-3 bg-slate-100 ${getProgressColorClass(percentage)}`}
           />
           <div className="flex justify-between mt-2 text-sm">
             <span className="text-slate-500">Today</span>
