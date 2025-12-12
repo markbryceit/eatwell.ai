@@ -29,7 +29,7 @@ export default function HeroSection({ onGetStarted }) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl md:text-7xl font-light tracking-tight text-slate-900 mb-6"
+          className="text-5xl md:text-7xl font-light tracking-tight text-slate-900 mb-10"
         >
           Your perfect
           <span className="block font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
