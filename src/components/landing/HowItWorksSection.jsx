@@ -10,13 +10,13 @@ export default function HowItWorksSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-20"
-        >
-          <h2 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6">
-            Deliver Personalized Plans
-            <span className="block mt-2 bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-              At Scale
-            </span>
+          className="text-center mb-20">
+
+          <h2 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6">Deliver Personalised Plans
+At Scale
+
+
+
           </h2>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto">
             Easily craft meal plans tailored to meet your macro needs and dietary preferences. 
@@ -31,8 +31,8 @@ export default function HowItWorksSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="bg-white rounded-2xl p-8 shadow-lg"
-          >
+            className="bg-white rounded-2xl p-8 shadow-lg">
+
             <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mb-6">
               <Utensils className="w-7 h-7 text-emerald-600" />
             </div>
@@ -47,8 +47,8 @@ export default function HowItWorksSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl p-8 shadow-lg"
-          >
+            className="bg-white rounded-2xl p-8 shadow-lg">
+
             <div className="w-14 h-14 rounded-2xl bg-teal-100 flex items-center justify-center mb-6">
               <Apple className="w-7 h-7 text-teal-600" />
             </div>
@@ -63,8 +63,8 @@ export default function HowItWorksSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="bg-white rounded-2xl p-8 shadow-lg"
-          >
+            className="bg-white rounded-2xl p-8 shadow-lg">
+
             <div className="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center mb-6">
               <Target className="w-7 h-7 text-violet-600" />
             </div>
@@ -79,8 +79,8 @@ export default function HowItWorksSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
-            className="bg-white rounded-2xl p-8 shadow-lg"
-          >
+            className="bg-white rounded-2xl p-8 shadow-lg">
+
             <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center mb-6">
               <TrendingUp className="w-7 h-7 text-amber-600" />
             </div>
@@ -91,6 +91,6 @@ export default function HowItWorksSection() {
           </motion.div>
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 }
