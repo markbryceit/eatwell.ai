@@ -52,13 +52,13 @@ export default function Home() {
       <CTASection onGetStarted={handleGetStarted} />
       
       {/* Footer */}
-      <footer className="bg-white py-12 border-t border-slate-100">
+      <footer className="bg-slate-900 py-12 border-t border-slate-800">
         <div className="max-w-6xl mx-auto px-6 text-center">
-          <div className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent mb-4">
-            NutriPlan
+          <div className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-4">
+            Dialled In Nutrition
           </div>
-          <p className="text-slate-500 text-sm">
-            Personalized nutrition for a healthier you.
+          <p className="text-slate-400 text-sm">
+            Smart meal planning for lasting results.
           </p>
         </div>
       </footer>
