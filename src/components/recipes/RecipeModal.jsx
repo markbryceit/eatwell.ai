@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Clock, Flame, Users, Star, Check } from "lucide-react";
+import { X, Clock, Flame, Users, Star, Check, Edit, Trash2 } from "lucide-react";
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import RatingStars from './RatingStars';
 
-export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onToggleFavorite }) {
+export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onToggleFavorite, onEdit, onDelete }) {
   const queryClient = useQueryClient();
   const [userRating, setUserRating] = useState(0);
 
@@ -203,6 +203,26 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
                 <Star className={`w-5 h-5 mr-2 ${isFavorite ? 'fill-amber-400 text-amber-400' : ''}`} />
                 {isFavorite ? 'Saved' : 'Save Recipe'}
               </Button>
+              {onEdit && (
+                <Button
+                  variant="outline"
+                  className="h-12 rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
+                  onClick={onEdit}
+                >
+                  <Edit className="w-5 h-5 mr-2" />
+                  Edit
+                </Button>
+              )}
+              {onDelete && (
+                <Button
+                  variant="outline"
+                  className="h-12 rounded-xl border-red-200 text-red-600 hover:bg-red-50"
+                  onClick={onDelete}
+                >
+                  <Trash2 className="w-5 h-5 mr-2" />
+                  Delete
+                </Button>
+              )}
               <Button
                 className="flex-1 h-12 rounded-xl bg-slate-900 hover:bg-slate-800"
                 onClick={onClose}
