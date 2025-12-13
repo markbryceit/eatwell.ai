@@ -11,6 +11,7 @@ import { Search, ArrowLeft, Star, Filter, Loader2, Plus, Edit, Trash2 } from "lu
 import RecipeCard from '@/components/recipes/RecipeCard';
 import RecipeModal from '@/components/recipes/RecipeModal';
 import RecipeEditModal from '@/components/recipes/RecipeEditModal';
+import AdvancedFilters from '@/components/recipes/AdvancedFilters';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -24,6 +25,13 @@ export default function Recipes() {
   const [isCreating, setIsCreating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [user, setUser] = useState(null);
+  const [advancedFilters, setAdvancedFilters] = useState({
+    includeIngredients: [],
+    excludeIngredients: [],
+    dietaryTags: [],
+    maxPrepTime: 180,
+    calorieRange: [0, 2000]
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -101,13 +109,45 @@ export default function Recipes() {
   };
 
   const filteredRecipes = recipes?.filter(recipe => {
+    // Basic filters
     const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       recipe.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesMealType = selectedMealType === 'all' || recipe.meal_type === selectedMealType;
     const matchesFavorite = !showFavoritesOnly || isFavorite(recipe.id);
     
-    return matchesSearch && matchesMealType && matchesFavorite;
+    // Advanced filters - ingredients
+    const recipeIngredients = recipe.ingredients?.map(i => i.toLowerCase()).join(' ') || '';
+    const matchesIncludeIngredients = advancedFilters.includeIngredients.length === 0 ||
+      advancedFilters.includeIngredients.every(ing => recipeIngredients.includes(ing));
+    const matchesExcludeIngredients = advancedFilters.excludeIngredients.length === 0 ||
+      !advancedFilters.excludeIngredients.some(ing => recipeIngredients.includes(ing));
+    
+    // Advanced filters - dietary tags
+    const matchesDietaryTags = advancedFilters.dietaryTags.length === 0 ||
+      advancedFilters.dietaryTags.some(tag => recipe.dietary_tags?.includes(tag));
+    
+    // Advanced filters - prep time
+    const totalTime = (recipe.prep_time_mins || 0) + (recipe.cook_time_mins || 0);
+    const matchesPrepTime = advancedFilters.maxPrepTime >= 180 || totalTime <= advancedFilters.maxPrepTime;
+    
+    // Advanced filters - calorie range
+    const matchesCalories = recipe.calories >= advancedFilters.calorieRange[0] && 
+      recipe.calories <= advancedFilters.calorieRange[1];
+    
+    return matchesSearch && matchesMealType && matchesFavorite && 
+           matchesIncludeIngredients && matchesExcludeIngredients &&
+           matchesDietaryTags && matchesPrepTime && matchesCalories;
   }) || [];
+
+  const resetAdvancedFilters = () => {
+    setAdvancedFilters({
+      includeIngredients: [],
+      excludeIngredients: [],
+      dietaryTags: [],
+      maxPrepTime: 180,
+      calorieRange: [0, 2000]
+    });
+  };
 
   const dietaryTags = [...new Set(recipes?.flatMap(r => r.dietary_tags || []))];
 
@@ -172,7 +212,7 @@ export default function Recipes() {
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <Input
-                placeholder="Search recipes..."
+                placeholder="Search recipes by name or description..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-12 h-12 rounded-xl border-slate-200"
@@ -186,6 +226,12 @@ export default function Recipes() {
               <Star className={`w-5 h-5 mr-2 ${showFavoritesOnly ? 'fill-white' : ''}`} />
               Favorites
             </Button>
+            <AdvancedFilters
+              filters={advancedFilters}
+              onFiltersChange={setAdvancedFilters}
+              availableDietaryTags={dietaryTags}
+              onReset={resetAdvancedFilters}
+            />
           </div>
 
           <Tabs value={selectedMealType} onValueChange={setSelectedMealType}>
@@ -198,20 +244,6 @@ export default function Recipes() {
             </TabsList>
           </Tabs>
 
-          {/* Dietary Tags */}
-          {dietaryTags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {dietaryTags.slice(0, 8).map(tag => (
-                <Badge 
-                  key={tag} 
-                  variant="outline" 
-                  className="rounded-full cursor-pointer hover:bg-slate-100"
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Recipe Grid */}
@@ -252,12 +284,22 @@ export default function Recipes() {
           <div className="text-center py-20">
             <div className="text-6xl mb-4">🍽️</div>
             <h3 className="text-xl font-semibold text-slate-900 mb-2">No Recipes Found</h3>
-            <p className="text-slate-500">
+            <p className="text-slate-500 mb-4">
               {showFavoritesOnly 
                 ? "You haven't favorited any recipes yet"
                 : "Try adjusting your search or filters"
               }
             </p>
+            {(advancedFilters.includeIngredients.length > 0 || 
+              advancedFilters.excludeIngredients.length > 0 ||
+              advancedFilters.dietaryTags.length > 0 ||
+              advancedFilters.maxPrepTime < 180 ||
+              advancedFilters.calorieRange[0] > 0 ||
+              advancedFilters.calorieRange[1] < 2000) && (
+              <Button variant="outline" onClick={resetAdvancedFilters}>
+                Clear Filters
+              </Button>
+            )}
           </div>
         )}
       </div>
