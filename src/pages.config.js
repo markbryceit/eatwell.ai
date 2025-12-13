@@ -3,6 +3,7 @@ import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import Recipes from './pages/Recipes';
 import AdminRecipeUpload from './pages/AdminRecipeUpload';
+import MealPlanner from './pages/MealPlanner';
 import __Layout from './Layout.jsx';
 
 
@@ -12,6 +13,7 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "Recipes": Recipes,
     "AdminRecipeUpload": AdminRecipeUpload,
+    "MealPlanner": MealPlanner,
 }
 
 export const pagesConfig = {

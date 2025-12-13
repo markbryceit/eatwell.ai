@@ -431,6 +431,14 @@ export default function Dashboard() {
               <BookOpen className="w-4 h-4 mr-2" />
               Recipes
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate(createPageUrl('MealPlanner'))}
+              className="rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Meal Planner
+            </Button>
             {user?.role === 'admin' && (
               <Button
                 variant="outline"
