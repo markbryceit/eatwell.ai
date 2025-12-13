@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Search, ArrowLeft, Star, Filter, Loader2 } from "lucide-react";
+import { Search, ArrowLeft, Star, Filter, Loader2, Plus, Edit, Trash2 } from "lucide-react";
 import RecipeCard from '@/components/recipes/RecipeCard';
 import RecipeModal from '@/components/recipes/RecipeModal';
+import RecipeEditModal from '@/components/recipes/RecipeEditModal';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 export default function Recipes() {
   const queryClient = useQueryClient();
@@ -18,6 +20,22 @@ export default function Recipes() {
   const [selectedMealType, setSelectedMealType] = useState('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [editingRecipe, setEditingRecipe] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.log('Error fetching user:', error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // Fetch all recipes
   const { data: recipes, isLoading: recipesLoading } = useQuery({
@@ -45,6 +63,43 @@ export default function Recipes() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] })
   });
 
+  const handleSaveRecipe = async (recipeData) => {
+    setIsSaving(true);
+    try {
+      if (editingRecipe) {
+        await base44.entities.Recipe.update(editingRecipe.id, recipeData);
+        toast.success('Recipe updated successfully');
+      } else {
+        await base44.entities.Recipe.create(recipeData);
+        toast.success('Recipe created successfully');
+      }
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+      queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
+      setEditingRecipe(null);
+      setIsCreating(false);
+    } catch (error) {
+      toast.error(error.message || 'Failed to save recipe');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteRecipe = async (recipeId) => {
+    if (!confirm('Are you sure you want to delete this recipe? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await base44.entities.Recipe.delete(recipeId);
+      toast.success('Recipe deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+      queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
+      setSelectedRecipe(null);
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete recipe');
+    }
+  };
+
   const filteredRecipes = recipes?.filter(recipe => {
     const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       recipe.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -66,22 +121,49 @@ export default function Recipes() {
         onToggleFavorite={() => {
           if (selectedRecipe) toggleFavorite.mutate(selectedRecipe.id);
         }}
+        onEdit={user?.role === 'admin' ? () => {
+          setEditingRecipe(selectedRecipe);
+          setSelectedRecipe(null);
+        } : null}
+        onDelete={user?.role === 'admin' ? () => handleDeleteRecipe(selectedRecipe.id) : null}
+      />
+
+      <RecipeEditModal
+        recipe={editingRecipe}
+        isOpen={!!editingRecipe || isCreating}
+        onClose={() => {
+          setEditingRecipe(null);
+          setIsCreating(false);
+        }}
+        onSave={handleSaveRecipe}
+        isSaving={isSaving}
       />
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link to={createPageUrl('Dashboard')}>
-            <Button variant="ghost" size="icon" className="rounded-xl">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Recipe Library</h1>
-            <p className="text-slate-500">
-              {recipes?.length || 0} recipes available
-            </p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Link to={createPageUrl('Dashboard')}>
+              <Button variant="ghost" size="icon" className="rounded-xl">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Recipe Library</h1>
+              <p className="text-slate-500">
+                {recipes?.length || 0} recipes available
+              </p>
+            </div>
           </div>
+          {user?.role === 'admin' && (
+            <Button
+              onClick={() => setIsCreating(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Create Recipe
+            </Button>
+          )}
         </div>
 
         {/* Search and Filters */}
@@ -157,6 +239,10 @@ export default function Recipes() {
                     isFavorite={isFavorite(recipe.id)}
                     onToggleFavorite={() => toggleFavorite.mutate(recipe.id)}
                     onClick={() => setSelectedRecipe(recipe)}
+                    onEdit={user?.role === 'admin' ? (e) => {
+                      e.stopPropagation();
+                      setEditingRecipe(recipe);
+                    } : null}
                   />
                 </motion.div>
               ))}
