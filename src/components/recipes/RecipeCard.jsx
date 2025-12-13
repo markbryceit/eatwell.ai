@@ -1,7 +1,8 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Clock, Flame } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Star, Clock, Flame, Edit } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick, onEdit }) {
@@ -37,18 +38,30 @@ export default function RecipeCard({ recipe, isFavorite, onToggleFavorite, onCli
           <Badge className={`absolute top-3 left-3 ${mealTypeColors[recipe.meal_type]}`}>
             {recipe.meal_type}
           </Badge>
-          <button 
-            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-            className="absolute top-3 right-3"
-          >
-            <Star 
-              className={`w-6 h-6 transition-all ${
-                isFavorite 
-                  ? 'fill-amber-400 text-amber-400' 
-                  : 'text-white/80 hover:text-amber-400'
-              }`} 
-            />
-          </button>
+          <div className="absolute top-3 right-3 flex gap-2">
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white"
+                onClick={onEdit}
+              >
+                <Edit className="w-4 h-4 text-blue-600" />
+              </Button>
+            )}
+            <button 
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+              className="h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white flex items-center justify-center"
+            >
+              <Star 
+                className={`w-5 h-5 transition-all ${
+                  isFavorite 
+                    ? 'fill-amber-400 text-amber-400' 
+                    : 'text-slate-600'
+                }`} 
+              />
+            </button>
+          </div>
         </div>
         <CardContent className="p-4">
           <h3 className="font-semibold text-slate-900 mb-2 line-clamp-1">{recipe.name}</h3>
