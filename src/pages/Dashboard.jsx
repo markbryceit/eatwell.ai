@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfWeek, addDays, differenceInDays, parseISO } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload } from "lucide-react";
+import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload, Sparkles } from "lucide-react";
 import DaySelector from '@/components/dashboard/DaySelector';
 import MealPlanCard from '@/components/dashboard/MealPlanCard';
 import CalorieProgress from '@/components/dashboard/CalorieProgress';
@@ -423,6 +423,14 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate(createPageUrl('Discover'))}
+              className="rounded-xl border-violet-200 text-violet-600 hover:bg-violet-50"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Discover
+            </Button>
             <Button
               variant="outline"
               onClick={() => navigate(createPageUrl('Recipes'))}

@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Recipes from './pages/Recipes';
 import AdminRecipeUpload from './pages/AdminRecipeUpload';
 import MealPlanner from './pages/MealPlanner';
+import Discover from './pages/Discover';
 import __Layout from './Layout.jsx';
 
 
@@ -14,6 +15,7 @@ export const PAGES = {
     "Recipes": Recipes,
     "AdminRecipeUpload": AdminRecipeUpload,
     "MealPlanner": MealPlanner,
+    "Discover": Discover,
 }
 
 export const pagesConfig = {
