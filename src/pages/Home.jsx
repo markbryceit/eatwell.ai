@@ -32,8 +32,17 @@ export default function Home() {
     setIsChecking(false);
   };
 
-  const handleGetStarted = () => {
-    base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+  const handleGetStarted = async () => {
+    try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (isAuth) {
+        navigate(createPageUrl('Onboarding'));
+      } else {
+        base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+      }
+    } catch (error) {
+      base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+    }
   };
 
   if (isChecking) {
