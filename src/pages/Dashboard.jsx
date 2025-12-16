@@ -13,6 +13,7 @@ import CalorieProgress from '@/components/dashboard/CalorieProgress';
 import WeeklyCheckin from '@/components/dashboard/WeeklyCheckin';
 import RecipeModal from '@/components/recipes/RecipeModal';
 import AlternativeMeals from '@/components/dashboard/AlternativeMeals';
+import UserMenu from '@/components/UserMenu';
 import { motion } from 'framer-motion';
 
 export default function Dashboard() {
@@ -422,7 +423,8 @@ export default function Dashboard() {
               {currentPlan ? `Week of ${format(new Date(currentPlan.week_start_date), 'MMM d')}` : 'No active plan'}
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
+            <UserMenu />
             <Button
               variant="outline"
               onClick={() => navigate(createPageUrl('Discover'))}
