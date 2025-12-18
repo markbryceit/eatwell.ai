@@ -20,7 +20,8 @@ export default function Home() {
     try {
       const isAuth = await base44.auth.isAuthenticated();
       if (isAuth) {
-        const profiles = await base44.entities.UserProfile.list();
+        const currentUser = await base44.auth.me();
+        const profiles = await base44.entities.UserProfile.filter({ created_by: currentUser.email });
         if (profiles.length > 0 && profiles[0].onboarding_complete) {
           navigate(createPageUrl('Dashboard'));
           return;
