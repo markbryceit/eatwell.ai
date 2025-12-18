@@ -41,7 +41,10 @@ export default function Dashboard() {
   // Fetch user profile
   const { data: profiles, isLoading: profileLoading } = useQuery({
     queryKey: ['userProfile'],
-    queryFn: () => base44.entities.UserProfile.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.UserProfile.filter({ created_by: currentUser.email });
+    }
   });
 
   const profile = profiles?.[0];
@@ -49,7 +52,10 @@ export default function Dashboard() {
   // Fetch current meal plan
   const { data: mealPlans, isLoading: planLoading } = useQuery({
     queryKey: ['mealPlans'],
-    queryFn: () => base44.entities.MealPlan.filter({ is_active: true })
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.MealPlan.filter({ is_active: true, created_by: currentUser.email });
+    }
   });
 
   const currentPlan = mealPlans?.[0];
@@ -63,13 +69,19 @@ export default function Dashboard() {
   // Fetch favorites
   const { data: favorites } = useQuery({
     queryKey: ['favorites'],
-    queryFn: () => base44.entities.FavoriteRecipe.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
+    }
   });
 
   // Fetch calorie logs
   const { data: calorieLogs } = useQuery({
     queryKey: ['calorieLogs'],
-    queryFn: () => base44.entities.CalorieLog.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.CalorieLog.filter({ created_by: currentUser.email });
+    }
   });
 
   // Check if weekly checkin is needed
@@ -310,8 +322,12 @@ export default function Dashboard() {
       if (dinner) usedRecipeIds.push(dinner.id);
     }
 
-    // Deactivate old plans
-    const oldPlans = await base44.entities.MealPlan.filter({ is_active: true });
+    // Deactivate old plans for this user only
+    const currentUser = await base44.auth.me();
+    const oldPlans = await base44.entities.MealPlan.filter({ 
+      is_active: true, 
+      created_by: currentUser.email 
+    });
     for (const plan of oldPlans) {
       await base44.entities.MealPlan.update(plan.id, { is_active: false });
     }

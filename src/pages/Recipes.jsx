@@ -54,7 +54,10 @@ export default function Recipes() {
   // Fetch favorites
   const { data: favorites } = useQuery({
     queryKey: ['favorites'],
-    queryFn: () => base44.entities.FavoriteRecipe.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
+    }
   });
 
   const isFavorite = (recipeId) => favorites?.some(f => f.recipe_id === recipeId);

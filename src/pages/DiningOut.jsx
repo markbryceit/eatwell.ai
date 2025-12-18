@@ -31,13 +31,19 @@ export default function DiningOut() {
   // Fetch saved plans
   const { data: savedPlans } = useQuery({
     queryKey: ['diningPlans'],
-    queryFn: () => base44.entities.DiningOutPlan.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.DiningOutPlan.filter({ created_by: currentUser.email });
+    }
   });
 
   // Fetch favorite restaurants
   const { data: favoriteRestaurants } = useQuery({
     queryKey: ['favoriteRestaurants'],
-    queryFn: () => base44.entities.FavoriteRestaurant.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.FavoriteRestaurant.filter({ created_by: currentUser.email });
+    }
   });
 
   const savePlan = useMutation({
