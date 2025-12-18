@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, MapPin, Loader2, Download, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin, Loader2, Download, ExternalLink, Camera, Save, Star, Bookmark } from 'lucide-react';
 import { toast } from 'sonner';
 import RestaurantCard from '@/components/diningout/RestaurantCard';
+import MenuScanner from '@/components/diningout/MenuScanner';
 
 export default function DiningOut() {
+  const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const [formData, setFormData] = useState({
     location: '',
     hotelAddress: '',
@@ -22,6 +26,62 @@ export default function DiningOut() {
     mealTypes: ['breakfast', 'lunch', 'dinner']
   });
   const [recommendations, setRecommendations] = useState(null);
+
+  // Fetch saved plans
+  const { data: savedPlans } = useQuery({
+    queryKey: ['diningPlans'],
+    queryFn: () => base44.entities.DiningOutPlan.list()
+  });
+
+  // Fetch favorite restaurants
+  const { data: favoriteRestaurants } = useQuery({
+    queryKey: ['favoriteRestaurants'],
+    queryFn: () => base44.entities.FavoriteRestaurant.list()
+  });
+
+  const savePlan = useMutation({
+    mutationFn: async () => {
+      if (!recommendations || !formData.location) return;
+      
+      await base44.entities.DiningOutPlan.create({
+        location: formData.location,
+        hotel_address: formData.hotelAddress,
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        meal_types: formData.mealTypes,
+        recommendations: recommendations.restaurants || []
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['diningPlans'] });
+      toast.success('Plan saved!');
+    }
+  });
+
+  const toggleFavorite = useMutation({
+    mutationFn: async (restaurant) => {
+      const existing = favoriteRestaurants?.find(f => f.name === restaurant.name && f.location === formData.location);
+      
+      if (existing) {
+        await base44.entities.FavoriteRestaurant.delete(existing.id);
+      } else {
+        await base44.entities.FavoriteRestaurant.create({
+          name: restaurant.name,
+          cuisine_type: restaurant.cuisine_type,
+          location: formData.location,
+          rating: restaurant.rating,
+          recommended_dishes: restaurant.recommendations?.map(r => r.dish_name) || []
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favoriteRestaurants'] });
+    }
+  });
+
+  const isFavorite = (restaurantName) => {
+    return favoriteRestaurants?.some(f => f.name === restaurantName && f.location === formData.location);
+  };
 
   const handleMealTypeToggle = (mealType) => {
     setFormData(prev => ({
@@ -52,17 +112,29 @@ export default function DiningOut() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50/20">
+      <MenuScanner isOpen={showScanner} onClose={() => setShowScanner(false)} />
+      
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-4 mb-8">
-          <Link to={createPageUrl('Dashboard')}>
-            <Button variant="ghost" size="icon" className="rounded-xl">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Dining Out Planner</h1>
-            <p className="text-slate-500">Find healthy restaurants while traveling</p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Link to={createPageUrl('Dashboard')}>
+              <Button variant="ghost" size="icon" className="rounded-xl">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Dining Out Planner</h1>
+              <p className="text-slate-500">Find healthy restaurants while traveling</p>
+            </div>
           </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowScanner(true)}
+            className="rounded-xl border-teal-200 text-teal-600 hover:bg-teal-50"
+          >
+            <Camera className="w-4 h-4 mr-2" />
+            Scan Menu
+          </Button>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -147,6 +219,33 @@ export default function DiningOut() {
                 )}
                 Generate Plan
               </Button>
+
+              {savedPlans && savedPlans.length > 0 && (
+                <div className="pt-4 border-t border-slate-100">
+                  <Label className="text-xs text-slate-500 mb-2 block">Saved Plans</Label>
+                  <div className="space-y-2">
+                    {savedPlans.slice(0, 3).map((plan) => (
+                      <button
+                        key={plan.id}
+                        onClick={() => {
+                          setFormData({
+                            location: plan.location,
+                            hotelAddress: plan.hotel_address,
+                            startDate: plan.start_date,
+                            endDate: plan.end_date,
+                            mealTypes: plan.meal_types
+                          });
+                          setRecommendations({ restaurants: plan.recommendations });
+                        }}
+                        className="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
+                      >
+                        <div className="font-medium text-sm text-slate-900">{plan.location}</div>
+                        <div className="text-xs text-slate-500">{plan.start_date} to {plan.end_date}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -182,21 +281,36 @@ export default function DiningOut() {
                   <h2 className="text-2xl font-bold text-slate-900">
                     {recommendations.restaurants?.length || 0} Recommendations
                   </h2>
-                  {recommendations.mapUrl && (
+                  <div className="flex gap-2">
                     <Button
                       variant="outline"
-                      onClick={() => window.open(recommendations.mapUrl, '_blank')}
+                      onClick={() => savePlan.mutate()}
                       className="rounded-xl"
                     >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      View Map
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Plan
                     </Button>
-                  )}
+                    {recommendations.mapUrl && (
+                      <Button
+                        variant="outline"
+                        onClick={() => window.open(recommendations.mapUrl, '_blank')}
+                        className="rounded-xl"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        View Map
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-4">
                   {recommendations.restaurants?.map((restaurant, index) => (
-                    <RestaurantCard key={index} restaurant={restaurant} />
+                    <RestaurantCard 
+                      key={index} 
+                      restaurant={restaurant}
+                      isFavorite={isFavorite(restaurant.name)}
+                      onToggleFavorite={() => toggleFavorite.mutate(restaurant)}
+                    />
                   ))}
                 </div>
               </div>

@@ -1,15 +1,25 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Star, DollarSign, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { MapPin, Star, DollarSign, Clock, Heart, ExternalLink } from 'lucide-react';
 
-export default function RestaurantCard({ restaurant }) {
+export default function RestaurantCard({ restaurant, isFavorite, onToggleFavorite }) {
+  const openTableUrl = `https://www.opentable.com/s?term=${encodeURIComponent(restaurant.name)}`;
+  
   return (
     <Card className="bg-white rounded-2xl shadow-sm border-0">
       <CardHeader>
         <div className="flex items-start justify-between mb-2">
-          <div>
-            <CardTitle className="text-xl">{restaurant.name}</CardTitle>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-xl">{restaurant.name}</CardTitle>
+              {onToggleFavorite && (
+                <button onClick={onToggleFavorite}>
+                  <Heart className={`w-5 h-5 transition-colors ${isFavorite ? 'fill-rose-500 text-rose-500' : 'text-slate-300 hover:text-rose-500'}`} />
+                </button>
+              )}
+            </div>
             <p className="text-sm text-slate-500 mt-1">{restaurant.cuisine_type}</p>
           </div>
           {restaurant.rating && (
@@ -54,6 +64,14 @@ export default function RestaurantCard({ restaurant }) {
             )}
           </div>
         ))}
+
+        <Button
+          onClick={() => window.open(openTableUrl, '_blank')}
+          className="w-full bg-teal-600 hover:bg-teal-700 rounded-xl mt-4"
+        >
+          <ExternalLink className="w-4 h-4 mr-2" />
+          Make Reservation on OpenTable
+        </Button>
       </CardContent>
     </Card>
   );
