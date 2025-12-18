@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Search, ArrowLeft, Star, Filter, Loader2, Plus, Edit, Trash2 } from "lucide-react";
+import { Search, ArrowLeft, Star, Filter, Loader2, Plus, Edit, Trash2, Sparkles, X, Flame } from "lucide-react";
 import RecipeCard from '@/components/recipes/RecipeCard';
 import RecipeModal from '@/components/recipes/RecipeModal';
 import RecipeEditModal from '@/components/recipes/RecipeEditModal';
 import AdvancedFilters from '@/components/recipes/AdvancedFilters';
+import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -32,6 +33,8 @@ export default function Recipes() {
     maxPrepTime: 180,
     calorieRange: [0, 2000]
   });
+  const [aiRecommendations, setAiRecommendations] = useState([]);
+  const [showAISection, setShowAISection] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -73,6 +76,25 @@ export default function Recipes() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] })
   });
+
+  // Load AI recommendations
+  useEffect(() => {
+    const loadAIRecommendations = async () => {
+      if (!user || !recipes) return;
+      
+      try {
+        const { data } = await base44.functions.invoke('getAIRecommendations', {});
+        const recommendedRecipes = recipes.filter(r => 
+          data.recommendations?.includes(r.id)
+        ).slice(0, 6);
+        setAiRecommendations(recommendedRecipes);
+      } catch (error) {
+        console.error('Failed to load AI recommendations:', error);
+      }
+    };
+
+    loadAIRecommendations();
+  }, [user, recipes]);
 
   const handleSaveRecipe = async (recipeData) => {
     setIsSaving(true);
@@ -248,6 +270,60 @@ export default function Recipes() {
           </Tabs>
 
         </div>
+
+        {/* AI Recommendations */}
+        {aiRecommendations.length > 0 && showAISection && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <Card className="bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-2xl overflow-hidden">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold">AI Recommendations</h2>
+                      <p className="text-violet-100 text-sm">Based on your preferences and behavior</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAISection(false)}
+                    className="text-white hover:bg-white/10"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {aiRecommendations.map((recipe) => (
+                    <motion.div
+                      key={recipe.id}
+                      whileHover={{ scale: 1.02 }}
+                      className="bg-white/10 backdrop-blur-sm rounded-xl p-4 cursor-pointer hover:bg-white/20 transition-all"
+                      onClick={() => setSelectedRecipe(recipe)}
+                    >
+                      <h3 className="font-semibold mb-2">{recipe.name}</h3>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Badge className="bg-white/20 text-white border-0">
+                          {recipe.meal_type}
+                        </Badge>
+                        <span className="flex items-center gap-1">
+                          <Flame className="w-3 h-3" />
+                          {recipe.calories} kcal
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Recipe Grid */}
         {recipesLoading ? (

@@ -19,6 +19,8 @@ export default function Discover() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [aiRecommendations, setAiRecommendations] = useState([]);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
 
   // Fetch user profile
   const { data: profiles } = useQuery({
@@ -77,6 +79,27 @@ export default function Discover() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] })
   });
+
+  // Load AI recommendations on mount
+  useEffect(() => {
+    const loadAIRecommendations = async () => {
+      if (!profile || !recipes) return;
+      
+      setIsLoadingRecommendations(true);
+      try {
+        const { data } = await base44.functions.invoke('getAIRecommendations', {});
+        const recommendedRecipes = recipes.filter(r => 
+          data.recommendations?.includes(r.id)
+        );
+        setAiRecommendations(recommendedRecipes);
+      } catch (error) {
+        console.error('Failed to load AI recommendations:', error);
+      }
+      setIsLoadingRecommendations(false);
+    };
+
+    loadAIRecommendations();
+  }, [profile, recipes]);
 
   // Get personalized recommendations
   const getPersonalizedRecommendations = () => {
@@ -201,6 +224,13 @@ export default function Discover() {
   };
 
   const collections = [
+    {
+      title: 'AI Picks Just For You',
+      icon: Sparkles,
+      color: 'from-violet-500 to-purple-500',
+      recipes: aiRecommendations,
+      isAI: true
+    },
     {
       title: 'For You',
       icon: Heart,
@@ -330,7 +360,23 @@ export default function Discover() {
         {/* Curated Collections */}
         {collections.map((collection, idx) => {
           const Icon = collection.icon;
-          if (collection.recipes.length === 0) return null;
+          if (collection.recipes.length === 0 && !collection.isAI) return null;
+          if (collection.isAI && isLoadingRecommendations) {
+            return (
+              <div key={idx} className="mb-12">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${collection.color} flex items-center justify-center`}>
+                    <Loader2 className="w-6 h-6 text-white animate-spin" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-900">{collection.title}</h2>
+                    <p className="text-slate-500">Loading personalized recommendations...</p>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          if (collection.isAI && collection.recipes.length === 0) return null;
 
           return (
             <div key={idx} className="mb-12">
@@ -340,7 +386,9 @@ export default function Discover() {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900">{collection.title}</h2>
-                  <p className="text-slate-500">{collection.recipes.length} recipes</p>
+                  <p className="text-slate-500">
+                    {collection.isAI ? 'Powered by AI based on your preferences' : `${collection.recipes.length} recipes`}
+                  </p>
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
