@@ -44,7 +44,8 @@ export default function Dashboard() {
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
-    }
+    },
+    staleTime: 5 * 60 * 1000 // 5 minutes
   });
 
   const profile = profiles?.[0];
@@ -55,7 +56,8 @@ export default function Dashboard() {
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.MealPlan.filter({ is_active: true, created_by: currentUser.email });
-    }
+    },
+    staleTime: 2 * 60 * 1000 // 2 minutes
   });
 
   const currentPlan = mealPlans?.[0];
@@ -63,25 +65,30 @@ export default function Dashboard() {
   // Fetch all recipes
   const { data: recipes, isLoading: recipesLoading } = useQuery({
     queryKey: ['recipes'],
-    queryFn: () => base44.entities.Recipe.list()
+    queryFn: () => base44.entities.Recipe.list(),
+    staleTime: 10 * 60 * 1000 // 10 minutes
   });
 
-  // Fetch favorites
+  // Fetch favorites - defer until profile is loaded
   const { data: favorites } = useQuery({
     queryKey: ['favorites'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
-    }
+    },
+    enabled: !!profile,
+    staleTime: 2 * 60 * 1000
   });
 
-  // Fetch calorie logs
+  // Fetch calorie logs - defer until profile is loaded
   const { data: calorieLogs } = useQuery({
     queryKey: ['calorieLogs'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.CalorieLog.filter({ created_by: currentUser.email });
-    }
+    },
+    enabled: !!profile,
+    staleTime: 1 * 60 * 1000 // 1 minute
   });
 
   // Check if weekly checkin is needed

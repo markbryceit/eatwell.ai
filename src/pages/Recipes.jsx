@@ -51,7 +51,8 @@ export default function Recipes() {
   // Fetch all recipes
   const { data: recipes, isLoading: recipesLoading } = useQuery({
     queryKey: ['recipes'],
-    queryFn: () => base44.entities.Recipe.list()
+    queryFn: () => base44.entities.Recipe.list(),
+    staleTime: 10 * 60 * 1000 // 10 minutes
   });
 
   // Fetch favorites
@@ -60,7 +61,8 @@ export default function Recipes() {
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
-    }
+    },
+    staleTime: 2 * 60 * 1000
   });
 
   const isFavorite = (recipeId) => favorites?.some(f => f.recipe_id === recipeId);
@@ -77,23 +79,27 @@ export default function Recipes() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] })
   });
 
-  // Load AI recommendations
+  // Load AI recommendations - defer to avoid blocking initial render
   useEffect(() => {
-    const loadAIRecommendations = async () => {
-      if (!user || !recipes) return;
-      
-      try {
-        const { data } = await base44.functions.invoke('getAIRecommendations', {});
-        const recommendedRecipes = recipes.filter(r => 
-          data.recommendations?.includes(r.id)
-        ).slice(0, 6);
-        setAiRecommendations(recommendedRecipes);
-      } catch (error) {
-        console.error('Failed to load AI recommendations:', error);
-      }
-    };
+    if (!user || !recipes || recipes.length === 0) return;
 
-    loadAIRecommendations();
+    const timer = setTimeout(() => {
+      const loadAIRecommendations = async () => {
+        try {
+          const { data } = await base44.functions.invoke('getAIRecommendations', {});
+          const recommendedRecipes = recipes.filter(r => 
+            data.recommendations?.includes(r.id)
+          ).slice(0, 6);
+          setAiRecommendations(recommendedRecipes);
+        } catch (error) {
+          console.error('Failed to load AI recommendations:', error);
+        }
+      };
+
+      loadAIRecommendations();
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, [user, recipes]);
 
   const handleSaveRecipe = async (recipeData) => {

@@ -80,25 +80,29 @@ export default function Discover() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] })
   });
 
-  // Load AI recommendations on mount
+  // Load AI recommendations - defer to avoid blocking initial render
   useEffect(() => {
-    const loadAIRecommendations = async () => {
-      if (!profile || !recipes) return;
-      
-      setIsLoadingRecommendations(true);
-      try {
-        const { data } = await base44.functions.invoke('getAIRecommendations', {});
-        const recommendedRecipes = recipes.filter(r => 
-          data.recommendations?.includes(r.id)
-        );
-        setAiRecommendations(recommendedRecipes);
-      } catch (error) {
-        console.error('Failed to load AI recommendations:', error);
-      }
-      setIsLoadingRecommendations(false);
-    };
+    if (!profile || !recipes || recipes.length === 0) return;
 
-    loadAIRecommendations();
+    const timer = setTimeout(() => {
+      const loadAIRecommendations = async () => {
+        setIsLoadingRecommendations(true);
+        try {
+          const { data } = await base44.functions.invoke('getAIRecommendations', {});
+          const recommendedRecipes = recipes.filter(r => 
+            data.recommendations?.includes(r.id)
+          );
+          setAiRecommendations(recommendedRecipes);
+        } catch (error) {
+          console.error('Failed to load AI recommendations:', error);
+        }
+        setIsLoadingRecommendations(false);
+      };
+
+      loadAIRecommendations();
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [profile, recipes]);
 
   // Get personalized recommendations

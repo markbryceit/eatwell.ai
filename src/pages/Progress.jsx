@@ -21,7 +21,8 @@ export default function Progress() {
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.WeightLog.filter({ created_by: currentUser.email }, '-date');
-    }
+    },
+    staleTime: 1 * 60 * 1000
   });
 
   const { data: exerciseLogs } = useQuery({
@@ -29,7 +30,8 @@ export default function Progress() {
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.ExerciseLog.filter({ created_by: currentUser.email }, '-date');
-    }
+    },
+    staleTime: 1 * 60 * 1000
   });
 
   const { data: calorieLogs } = useQuery({
@@ -37,7 +39,8 @@ export default function Progress() {
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.CalorieLog.filter({ created_by: currentUser.email }, '-date');
-    }
+    },
+    staleTime: 1 * 60 * 1000
   });
 
   const { data: profiles } = useQuery({
@@ -45,7 +48,8 @@ export default function Progress() {
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
-    }
+    },
+    staleTime: 5 * 60 * 1000
   });
 
   const profile = profiles?.[0];
