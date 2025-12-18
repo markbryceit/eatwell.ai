@@ -12,6 +12,7 @@ import { ArrowLeft, MapPin, Loader2, Download, ExternalLink, Camera, Save, Star,
 import { toast } from 'sonner';
 import RestaurantCard from '@/components/diningout/RestaurantCard';
 import MenuScanner from '@/components/diningout/MenuScanner';
+import RestaurantMap from '@/components/diningout/RestaurantMap';
 
 export default function DiningOut() {
   const queryClient = useQueryClient();
@@ -81,6 +82,28 @@ export default function DiningOut() {
 
   const isFavorite = (restaurantName) => {
     return favoriteRestaurants?.some(f => f.name === restaurantName && f.location === formData.location);
+  };
+
+  const exportToSheets = async () => {
+    try {
+      const response = await base44.functions.invoke('exportToGoogleSheets', {
+        planData: {
+          location: formData.location,
+          hotelAddress: formData.hotelAddress,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          restaurants: recommendations.restaurants
+        }
+      });
+      
+      if (response.data?.url) {
+        window.open(response.data.url, '_blank');
+        toast.success('Exported to Google Sheets!');
+      }
+    } catch (error) {
+      toast.error('Failed to export. Make sure Google Sheets is authorized.');
+      console.error(error);
+    }
   };
 
   const handleMealTypeToggle = (mealType) => {
@@ -284,25 +307,30 @@ export default function DiningOut() {
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
+                      onClick={exportToSheets}
+                      className="rounded-xl border-green-200 text-green-600 hover:bg-green-50"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Export to Sheets
+                    </Button>
+                    <Button
+                      variant="outline"
                       onClick={() => savePlan.mutate()}
                       className="rounded-xl"
                     >
                       <Save className="w-4 h-4 mr-2" />
                       Save Plan
                     </Button>
-                    {recommendations.mapUrl && (
-                      <Button
-                        variant="outline"
-                        onClick={() => window.open(recommendations.mapUrl, '_blank')}
-                        className="rounded-xl"
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        View Map
-                      </Button>
-                    )}
                   </div>
                 </div>
 
+                {/* Map View */}
+                <RestaurantMap 
+                  restaurants={recommendations.restaurants} 
+                  hotelAddress={formData.hotelAddress}
+                />
+
+                {/* Restaurant Cards */}
                 <div className="space-y-4">
                   {recommendations.restaurants?.map((restaurant, index) => (
                     <RestaurantCard 
