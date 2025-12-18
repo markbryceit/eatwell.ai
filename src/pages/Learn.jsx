@@ -18,7 +18,10 @@ export default function Learn() {
 
   const { data: lessons, isLoading } = useQuery({
     queryKey: ['lessons'],
-    queryFn: () => base44.entities.DailyLesson.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.DailyLesson.filter({ created_by: currentUser.email });
+    }
   });
 
   const markComplete = useMutation({

@@ -25,7 +25,10 @@ export default function Community() {
 
   const { data: challenges } = useQuery({
     queryKey: ['challenges'],
-    queryFn: () => base44.entities.Challenge.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.Challenge.filter({ created_by: currentUser.email });
+    }
   });
 
   const filteredPosts = posts?.filter(post => 
