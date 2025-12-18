@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfWeek, addDays, differenceInDays, parseISO } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload, Sparkles } from "lucide-react";
+import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload, Sparkles, GraduationCap, Users, TrendingUp, UtensilsCrossed } from "lucide-react";
 import DaySelector from '@/components/dashboard/DaySelector';
 import MealPlanCard from '@/components/dashboard/MealPlanCard';
 import CalorieProgress from '@/components/dashboard/CalorieProgress';
@@ -423,53 +423,94 @@ export default function Dashboard() {
               {currentPlan ? `Week of ${format(new Date(currentPlan.week_start_date), 'MMM d')}` : 'No active plan'}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <UserMenu />
             <Button
               variant="outline"
+              size="sm"
+              onClick={() => navigate(createPageUrl('Learn'))}
+              className="rounded-xl border-purple-200 text-purple-600 hover:bg-purple-50"
+            >
+              <GraduationCap className="w-4 h-4 mr-1" />
+              Learn
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(createPageUrl('Community'))}
+              className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
+            >
+              <Users className="w-4 h-4 mr-1" />
+              Community
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(createPageUrl('Progress'))}
+              className="rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+            >
+              <TrendingUp className="w-4 h-4 mr-1" />
+              Progress
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(createPageUrl('DiningOut'))}
+              className="rounded-xl border-teal-200 text-teal-600 hover:bg-teal-50"
+            >
+              <UtensilsCrossed className="w-4 h-4 mr-1" />
+              Dining Out
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => navigate(createPageUrl('Discover'))}
               className="rounded-xl border-violet-200 text-violet-600 hover:bg-violet-50"
             >
-              <Sparkles className="w-4 h-4 mr-2" />
+              <Sparkles className="w-4 h-4 mr-1" />
               Discover
             </Button>
             <Button
               variant="outline"
+              size="sm"
               onClick={() => navigate(createPageUrl('Recipes'))}
               className="rounded-xl"
             >
-              <BookOpen className="w-4 h-4 mr-2" />
+              <BookOpen className="w-4 h-4 mr-1" />
               Recipes
             </Button>
             <Button
               variant="outline"
+              size="sm"
               onClick={() => navigate(createPageUrl('MealPlanner'))}
-              className="rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+              className="rounded-xl"
             >
-              <Calendar className="w-4 h-4 mr-2" />
-              Meal Planner
+              <Calendar className="w-4 h-4 mr-1" />
+              Planner
             </Button>
             {user?.role === 'admin' && (
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => navigate(createPageUrl('AdminRecipeUpload'))}
                 className="rounded-xl border-violet-200 text-violet-600 hover:bg-violet-50"
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload PDF
+                <Upload className="w-4 h-4 mr-1" />
+                Upload
               </Button>
             )}
             <Button
+              size="sm"
               onClick={handleGenerateNewPlan}
               disabled={isGenerating}
               className="bg-slate-900 hover:bg-slate-800 rounded-xl"
             >
               {isGenerating ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
               ) : (
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-4 h-4 mr-1" />
               )}
-              New Plan
+              New
             </Button>
           </div>
         </div>
