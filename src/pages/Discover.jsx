@@ -23,12 +23,15 @@ export default function Discover() {
   // Fetch user profile
   const { data: profiles } = useQuery({
     queryKey: ['userProfile'],
-    queryFn: () => base44.entities.UserProfile.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.UserProfile.filter({ created_by: currentUser.email });
+    }
   });
 
   const profile = profiles?.[0];
 
-  // Fetch all recipes
+  // Fetch all recipes (shared resource)
   const { data: recipes } = useQuery({
     queryKey: ['recipes'],
     queryFn: () => base44.entities.Recipe.list()
@@ -37,19 +40,28 @@ export default function Discover() {
   // Fetch favorites
   const { data: favorites } = useQuery({
     queryKey: ['favorites'],
-    queryFn: () => base44.entities.FavoriteRecipe.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
+    }
   });
 
   // Fetch ratings
   const { data: ratings } = useQuery({
     queryKey: ['ratings'],
-    queryFn: () => base44.entities.RecipeRating.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.RecipeRating.filter({ created_by: currentUser.email });
+    }
   });
 
   // Fetch meal plans
   const { data: mealPlans } = useQuery({
     queryKey: ['mealPlans'],
-    queryFn: () => base44.entities.MealPlan.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.MealPlan.filter({ created_by: currentUser.email });
+    }
   });
 
   const isFavorite = (recipeId) => favorites?.some(f => f.recipe_id === recipeId);
