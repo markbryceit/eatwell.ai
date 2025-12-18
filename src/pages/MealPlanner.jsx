@@ -22,7 +22,10 @@ export default function MealPlanner() {
   // Fetch user profile
   const { data: profiles } = useQuery({
     queryKey: ['userProfile'],
-    queryFn: () => base44.entities.UserProfile.list()
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.UserProfile.filter({ created_by: currentUser.email });
+    }
   });
 
   const profile = profiles?.[0];
@@ -30,7 +33,10 @@ export default function MealPlanner() {
   // Fetch current meal plan
   const { data: mealPlans, isLoading: planLoading } = useQuery({
     queryKey: ['mealPlans'],
-    queryFn: () => base44.entities.MealPlan.filter({ is_active: true })
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.MealPlan.filter({ is_active: true, created_by: currentUser.email });
+    }
   });
 
   const currentPlan = mealPlans?.[0];
