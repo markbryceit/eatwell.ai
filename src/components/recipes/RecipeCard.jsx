@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Clock, Flame, Edit } from "lucide-react";
+import { Star, Clock, Flame, Edit, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick, onEdit, onAddToMealPlan }) {
@@ -39,12 +39,22 @@ export default function RecipeCard({ recipe, isFavorite, onToggleFavorite, onCli
             {recipe.meal_type}
           </Badge>
           <div className="absolute top-3 right-3 flex gap-2">
+            {onAddToMealPlan && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white"
+                onClick={(e) => { e.stopPropagation(); onAddToMealPlan(); }}
+              >
+                <Calendar className="w-4 h-4 text-emerald-600" />
+              </Button>
+            )}
             {onEdit && (
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white"
-                onClick={onEdit}
+                onClick={(e) => { e.stopPropagation(); onEdit(); }}
               >
                 <Edit className="w-4 h-4 text-blue-600" />
               </Button>
