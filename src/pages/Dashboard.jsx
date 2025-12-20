@@ -261,91 +261,41 @@ export default function Dashboard() {
   const generateMealPlan = async (calorieTarget) => {
     if (!recipes || recipes.length === 0) return;
 
-    const targetPerMeal = {
-      breakfast: calorieTarget * 0.25,
-      lunch: calorieTarget * 0.35,
-      dinner: calorieTarget * 0.30,
-      snack: calorieTarget * 0.10
-    };
-
-    const favoriteIds = favorites?.map(f => f.recipe_id) || [];
-    
-    const getRecipesForMealType = (type) => {
-      const available = recipes.filter(r => r.meal_type === type);
-      // Prioritize favorites
-      return available.sort((a, b) => {
-        const aFav = favoriteIds.includes(a.id) ? -1 : 0;
-        const bFav = favoriteIds.includes(b.id) ? -1 : 0;
-        return aFav - bFav;
+    try {
+      // Call AI to generate personalized meal plan
+      const { data } = await base44.functions.invoke('generateAIMealPlan', {
+        calorie_target: calorieTarget
       });
-    };
 
-    const selectRecipe = (type, usedIds) => {
-      const available = getRecipesForMealType(type).filter(r => !usedIds.includes(r.id));
-      const target = targetPerMeal[type];
+      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
       
-      // Find recipe within ±250 calories per meal contribution to daily target
-      const suitable = available.filter(r => 
-        Math.abs(r.calories - target) <= 150
-      );
-      
-      if (suitable.length > 0) {
-        return suitable[Math.floor(Math.random() * suitable.length)];
+      // Add dates to the AI-generated days
+      const daysWithDates = data.days.map((day, i) => ({
+        ...day,
+        date: format(addDays(weekStart, i), 'yyyy-MM-dd')
+      }));
+
+      // Deactivate old plans for this user only
+      const currentUser = await base44.auth.me();
+      const oldPlans = await base44.entities.MealPlan.filter({ 
+        is_active: true, 
+        created_by: currentUser.email 
+      });
+      for (const plan of oldPlans) {
+        await base44.entities.MealPlan.update(plan.id, { is_active: false });
       }
-      return available[Math.floor(Math.random() * available.length)];
-    };
 
-    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-    const days = [];
-    const usedRecipeIds = [];
-
-    for (let i = 0; i < 7; i++) {
-      const date = addDays(weekStart, i);
-      
-      const breakfast = selectRecipe('breakfast', usedRecipeIds);
-      const lunch = selectRecipe('lunch', usedRecipeIds);
-      const dinner = selectRecipe('dinner', usedRecipeIds);
-      const snack = selectRecipe('snack', usedRecipeIds);
-
-      const totalCalories = 
-        (breakfast?.calories || 0) + 
-        (lunch?.calories || 0) + 
-        (dinner?.calories || 0) + 
-        (snack?.calories || 0);
-
-      days.push({
-        day_name: format(date, 'EEEE'),
-        date: format(date, 'yyyy-MM-dd'),
-        breakfast_recipe_id: breakfast?.id,
-        lunch_recipe_id: lunch?.id,
-        dinner_recipe_id: dinner?.id,
-        snack_recipe_id: snack?.id,
-        total_calories: totalCalories
+      // Create new AI-generated plan
+      await base44.entities.MealPlan.create({
+        week_start_date: format(weekStart, 'yyyy-MM-dd'),
+        daily_calorie_target: calorieTarget,
+        days: daysWithDates,
+        is_active: true
       });
-
-      // Track used recipes for variety
-      if (breakfast) usedRecipeIds.push(breakfast.id);
-      if (lunch) usedRecipeIds.push(lunch.id);
-      if (dinner) usedRecipeIds.push(dinner.id);
+    } catch (error) {
+      console.error('Error generating AI meal plan:', error);
+      throw error;
     }
-
-    // Deactivate old plans for this user only
-    const currentUser = await base44.auth.me();
-    const oldPlans = await base44.entities.MealPlan.filter({ 
-      is_active: true, 
-      created_by: currentUser.email 
-    });
-    for (const plan of oldPlans) {
-      await base44.entities.MealPlan.update(plan.id, { is_active: false });
-    }
-
-    // Create new plan
-    await base44.entities.MealPlan.create({
-      week_start_date: format(weekStart, 'yyyy-MM-dd'),
-      daily_calorie_target: calorieTarget,
-      days,
-      is_active: true
-    });
   };
 
   const handleGenerateNewPlan = async () => {
