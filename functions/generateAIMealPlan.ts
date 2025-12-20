@@ -120,17 +120,19 @@ AVAILABLE RECIPES:
 ${JSON.stringify(recipesByType, null, 2)}
 
 REQUIREMENTS:
-1. Create a 7-day meal plan with breakfast, lunch, dinner, and snack for each day
-2. Prioritize recipes the user has favorited or highly rated
-3. Include popular community recipes (high community_favorites and community_avg_rating)
-4. Ensure variety - don't repeat the same recipe more than twice in the week
-5. Match dietary preferences and avoid disliked ingredients
-6. Target calorie goals per meal (±150 kcal tolerance)
-7. Balance macros across the week (adequate protein, fiber)
-8. Mix familiar recipes (user has cooked) with new discoveries
-9. Vary meal types and flavors throughout the week
+1. Create a COMPLETE 7-day meal plan with breakfast, lunch, dinner, and snack for EVERY day
+2. MUST select valid recipe IDs from the available recipes above
+3. NEVER leave any meal slot empty - every day must have all 4 meals
+4. Prioritize recipes the user has favorited or highly rated
+5. Include popular community recipes (high community_favorites and community_avg_rating)
+6. Ensure variety - don't repeat the same recipe more than twice in the week
+7. Match dietary preferences and avoid disliked ingredients
+8. Target calorie goals per meal (±200 kcal tolerance is acceptable)
+9. Balance macros across the week (adequate protein, fiber)
+10. Mix familiar recipes (user has cooked) with new discoveries
+11. If exact calorie match not available, prioritize recipe variety and nutritional balance
 
-Return a 7-day plan with recipe IDs for each meal.`;
+CRITICAL: Return exactly 7 days, each with ALL 4 meals (breakfast, lunch, dinner, snack).`;
 
     const response = await base44.integrations.Core.InvokeLLM({
       prompt: prompt,

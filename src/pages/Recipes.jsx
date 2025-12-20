@@ -12,9 +12,11 @@ import RecipeCard from '@/components/recipes/RecipeCard';
 import RecipeModal from '@/components/recipes/RecipeModal';
 import RecipeEditModal from '@/components/recipes/RecipeEditModal';
 import AdvancedFilters from '@/components/recipes/AdvancedFilters';
+import AddToMealPlanModal from '@/components/recipes/AddToMealPlanModal';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { format, startOfWeek, addDays } from 'date-fns';
 
 export default function Recipes() {
   const queryClient = useQueryClient();
@@ -35,6 +37,7 @@ export default function Recipes() {
   });
   const [aiRecommendations, setAiRecommendations] = useState([]);
   const [showAISection, setShowAISection] = useState(true);
+  const [recipeToAdd, setRecipeToAdd] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -64,6 +67,18 @@ export default function Recipes() {
     },
     staleTime: 2 * 60 * 1000
   });
+
+  // Fetch current meal plan
+  const { data: mealPlans } = useQuery({
+    queryKey: ['mealPlans'],
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.MealPlan.filter({ is_active: true, created_by: currentUser.email });
+    },
+    staleTime: 2 * 60 * 1000
+  });
+
+  const currentPlan = mealPlans?.[0];
 
   const isFavorite = (recipeId) => favorites?.some(f => f.recipe_id === recipeId);
 

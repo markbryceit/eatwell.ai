@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Star, Clock, Flame, Edit } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick, onEdit }) {
+export default function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick, onEdit, onAddToMealPlan }) {
   const mealTypeColors = {
     breakfast: "bg-amber-100 text-amber-700",
     lunch: "bg-emerald-100 text-emerald-700",
