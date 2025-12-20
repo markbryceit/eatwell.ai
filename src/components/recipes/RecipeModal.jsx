@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Clock, Flame, Users, Star, Check, Edit, Trash2 } from "lucide-react";
+import { X, Clock, Flame, Users, Star, Check, Edit, Trash2, Sparkles } from "lucide-react";
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import RatingStars from './RatingStars';
 
-export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onToggleFavorite, onEdit, onDelete }) {
+export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onToggleFavorite, onEdit, onDelete, onGenerateVariation }) {
   const queryClient = useQueryClient();
   const [userRating, setUserRating] = useState(0);
 
@@ -194,7 +194,7 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4 border-t border-slate-100">
+            <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-100">
               <Button
                 variant="outline"
                 className="flex-1 h-12 rounded-xl"
@@ -203,6 +203,16 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
                 <Star className={`w-5 h-5 mr-2 ${isFavorite ? 'fill-amber-400 text-amber-400' : ''}`} />
                 {isFavorite ? 'Saved' : 'Save Recipe'}
               </Button>
+              {onGenerateVariation && (
+                <Button
+                  variant="outline"
+                  className="flex-1 h-12 rounded-xl border-violet-200 text-violet-600 hover:bg-violet-50"
+                  onClick={onGenerateVariation}
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Create Variation
+                </Button>
+              )}
               {onEdit && (
                 <Button
                   variant="outline"
@@ -224,7 +234,7 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
                 </Button>
               )}
               <Button
-                className="flex-1 h-12 rounded-xl bg-slate-900 hover:bg-slate-800"
+                className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 mt-2"
                 onClick={onClose}
               >
                 <Check className="w-5 h-5 mr-2" />

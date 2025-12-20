@@ -13,6 +13,8 @@ import RecipeModal from '@/components/recipes/RecipeModal';
 import RecipeEditModal from '@/components/recipes/RecipeEditModal';
 import AdvancedFilters from '@/components/recipes/AdvancedFilters';
 import AddToMealPlanModal from '@/components/recipes/AddToMealPlanModal';
+import AIRecipeGenerator from '@/components/recipes/AIRecipeGenerator';
+import GeneratedRecipePreview from '@/components/recipes/GeneratedRecipePreview';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -38,6 +40,9 @@ export default function Recipes() {
   const [aiRecommendations, setAiRecommendations] = useState([]);
   const [showAISection, setShowAISection] = useState(true);
   const [recipeToAdd, setRecipeToAdd] = useState(null);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
+  const [generatedRecipe, setGeneratedRecipe] = useState(null);
+  const [showGeneratedPreview, setShowGeneratedPreview] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -195,6 +200,26 @@ export default function Recipes() {
     });
   };
 
+  const handleRecipeGenerated = (recipe) => {
+    setGeneratedRecipe(recipe);
+    setShowAIGenerator(false);
+    setShowGeneratedPreview(true);
+  };
+
+  const handleSaveGeneratedRecipe = async () => {
+    setIsSaving(true);
+    try {
+      await base44.entities.Recipe.create(generatedRecipe);
+      toast.success('Recipe saved to library!');
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+      setShowGeneratedPreview(false);
+      setGeneratedRecipe(null);
+    } catch (error) {
+      toast.error('Failed to save recipe');
+    }
+    setIsSaving(false);
+  };
+
   const dietaryTags = [...new Set(recipes?.flatMap(r => r.dietary_tags || []))];
 
   return (
@@ -212,6 +237,18 @@ export default function Recipes() {
           setSelectedRecipe(null);
         } : null}
         onDelete={user?.role === 'admin' ? () => handleDeleteRecipe(selectedRecipe.id) : null}
+        onGenerateVariation={async () => {
+          try {
+            setSelectedRecipe(null);
+            toast.info('Generating recipe variation...');
+            const { data } = await base44.functions.invoke('generateRecipeWithAI', {
+              variation_of_recipe: selectedRecipe
+            });
+            handleRecipeGenerated(data.recipe);
+          } catch (error) {
+            toast.error('Failed to generate variation');
+          }
+        }}
       />
 
       <RecipeEditModal
@@ -222,6 +259,27 @@ export default function Recipes() {
           setIsCreating(false);
         }}
         onSave={handleSaveRecipe}
+        isSaving={isSaving}
+      />
+
+      <AIRecipeGenerator
+        isOpen={showAIGenerator}
+        onClose={() => setShowAIGenerator(false)}
+        onRecipeGenerated={handleRecipeGenerated}
+      />
+
+      <GeneratedRecipePreview
+        recipe={generatedRecipe}
+        isOpen={showGeneratedPreview}
+        onClose={() => {
+          setShowGeneratedPreview(false);
+          setGeneratedRecipe(null);
+        }}
+        onSave={handleSaveGeneratedRecipe}
+        onRegenerate={() => {
+          setShowGeneratedPreview(false);
+          setShowAIGenerator(true);
+        }}
         isSaving={isSaving}
       />
 
@@ -279,15 +337,24 @@ export default function Recipes() {
               </p>
             </div>
           </div>
-          {user?.role === 'admin' && (
+          <div className="flex gap-2">
             <Button
-              onClick={() => setIsCreating(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+              onClick={() => setShowAIGenerator(true)}
+              className="bg-violet-600 hover:bg-violet-700 rounded-xl"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              Create Recipe
+              <Sparkles className="w-5 h-5 mr-2" />
+              AI Generate
             </Button>
-          )}
+            {user?.role === 'admin' && (
+              <Button
+                onClick={() => setIsCreating(true)}
+                className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Create Manual
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Search and Filters */}

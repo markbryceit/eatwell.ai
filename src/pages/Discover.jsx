@@ -270,6 +270,20 @@ export default function Discover() {
         onToggleFavorite={() => {
           if (selectedRecipe) toggleFavorite.mutate(selectedRecipe.id);
         }}
+        onGenerateVariation={async () => {
+          try {
+            setSelectedRecipe(null);
+            toast.info('Generating recipe variation...');
+            const { data } = await base44.functions.invoke('generateRecipeWithAI', {
+              variation_of_recipe: selectedRecipe
+            });
+            toast.success('Variation created! Check the Recipes page.');
+            await base44.entities.Recipe.create(data.recipe);
+            queryClient.invalidateQueries({ queryKey: ['recipes'] });
+          } catch (error) {
+            toast.error('Failed to generate variation');
+          }
+        }}
       />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
