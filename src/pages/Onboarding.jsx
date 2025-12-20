@@ -54,7 +54,11 @@ export default function Onboarding() {
         return;
       }
       
-      const profiles = await base44.entities.UserProfile.list();
+      const user = await base44.auth.me();
+      const profiles = await base44.entities.UserProfile.filter({ 
+        created_by: user.email 
+      });
+      
       if (profiles.length > 0 && profiles[0].onboarding_complete) {
         navigate(createPageUrl('Dashboard'));
         return;
@@ -76,6 +80,8 @@ export default function Onboarding() {
       const tdee = calculateTDEE(bmr, formData.activity_level);
       const targetCalories = calculateTargetCalories(tdee, formData.health_goal);
 
+      const user = await base44.auth.me();
+      
       const profileData = {
         height_cm: height,
         weight_kg: weight,
@@ -89,7 +95,10 @@ export default function Onboarding() {
         onboarding_complete: true
       };
 
-      const existingProfiles = await base44.entities.UserProfile.list();
+      const existingProfiles = await base44.entities.UserProfile.filter({ 
+        created_by: user.email 
+      });
+      
       if (existingProfiles.length > 0) {
         await base44.entities.UserProfile.update(existingProfiles[0].id, profileData);
       } else {
