@@ -225,6 +225,44 @@ export default function Recipes() {
         isSaving={isSaving}
       />
 
+      <AddToMealPlanModal
+        recipe={recipeToAdd}
+        isOpen={!!recipeToAdd}
+        onClose={() => setRecipeToAdd(null)}
+        onAddToMealPlan={(dayIndex, mealType) => {
+          if (!currentPlan || !recipeToAdd) return;
+
+          const updatedDays = [...currentPlan.days];
+          updatedDays[dayIndex] = {
+            ...updatedDays[dayIndex],
+            [`${mealType}_recipe_id`]: recipeToAdd.id
+          };
+
+          const getRecipe = (id) => recipes?.find(r => r.id === id);
+          const breakfast = getRecipe(updatedDays[dayIndex].breakfast_recipe_id);
+          const lunch = getRecipe(updatedDays[dayIndex].lunch_recipe_id);
+          const dinner = getRecipe(updatedDays[dayIndex].dinner_recipe_id);
+          const snack = getRecipe(updatedDays[dayIndex].snack_recipe_id);
+          
+          updatedDays[dayIndex].total_calories = 
+            (breakfast?.calories || 0) +
+            (lunch?.calories || 0) +
+            (dinner?.calories || 0) +
+            (snack?.calories || 0);
+
+          base44.entities.MealPlan.update(currentPlan.id, {
+            days: updatedDays
+          }).then(() => {
+            queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
+            toast.success('Recipe added to meal plan');
+            setRecipeToAdd(null);
+          }).catch(() => {
+            toast.error('Failed to add recipe to meal plan');
+          });
+        }}
+        currentPlan={currentPlan}
+      />
+
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -375,6 +413,7 @@ export default function Recipes() {
                       e.stopPropagation();
                       setEditingRecipe(recipe);
                     } : null}
+                    onAddToMealPlan={() => setRecipeToAdd(recipe)}
                   />
                 </motion.div>
               ))}
