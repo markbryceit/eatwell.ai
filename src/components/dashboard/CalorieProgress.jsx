@@ -1,13 +1,14 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Flame, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import MacroRing from '../nutrition/MacroRing';
 
 const getProgressColorClass = (percentage) => {
   if (percentage <= 100) return '[&>div]:bg-emerald-500';
   if (percentage <= 110) return '[&>div]:bg-amber-500';
   return '[&>div]:bg-rose-500';
 };
-import { Flame, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 export default function CalorieProgress({ dailyTarget, consumed, weeklyLogs, macros }) {
   const percentage = dailyTarget > 0 ? Math.min((consumed / dailyTarget) * 100, 100) : 0;
@@ -59,6 +60,38 @@ export default function CalorieProgress({ dailyTarget, consumed, weeklyLogs, mac
             </span>
           </div>
         </div>
+
+        {/* Macro Breakdown */}
+        {macros && macros.protein + macros.carbs + macros.fat > 0 && (
+          <div className="pt-4 border-t border-slate-100">
+            <h4 className="text-sm font-medium text-slate-600 mb-3">Today's Macros</h4>
+            <div className="flex items-center justify-center mb-3">
+              <MacroRing 
+                protein={macros.protein} 
+                carbs={macros.carbs} 
+                fat={macros.fat} 
+                size={100}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center text-sm">
+              <div>
+                <div className="w-2 h-2 rounded-full bg-blue-500 mx-auto mb-1" />
+                <div className="font-semibold text-slate-900">{macros.protein}g</div>
+                <div className="text-xs text-slate-500">Protein</div>
+              </div>
+              <div>
+                <div className="w-2 h-2 rounded-full bg-amber-500 mx-auto mb-1" />
+                <div className="font-semibold text-slate-900">{macros.carbs}g</div>
+                <div className="text-xs text-slate-500">Carbs</div>
+              </div>
+              <div>
+                <div className="w-2 h-2 rounded-full bg-rose-500 mx-auto mb-1" />
+                <div className="font-semibold text-slate-900">{macros.fat}g</div>
+                <div className="text-xs text-slate-500">Fat</div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Weekly Summary */}
         <div className="pt-4 border-t border-slate-100">
