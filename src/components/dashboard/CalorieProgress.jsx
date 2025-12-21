@@ -9,7 +9,7 @@ const getProgressColorClass = (percentage) => {
 };
 import { Flame, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
-export default function CalorieProgress({ dailyTarget, consumed, weeklyLogs }) {
+export default function CalorieProgress({ dailyTarget, consumed, weeklyLogs, macros }) {
   const percentage = dailyTarget > 0 ? Math.min((consumed / dailyTarget) * 100, 100) : 0;
   const remaining = dailyTarget - consumed;
   

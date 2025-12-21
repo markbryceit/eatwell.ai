@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfWeek, addDays, differenceInDays, parseISO } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload, Sparkles, GraduationCap, Users, TrendingUp, UtensilsCrossed } from "lucide-react";
+import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload, Sparkles, GraduationCap, Users, TrendingUp, UtensilsCrossed, Plus } from "lucide-react";
 import DaySelector from '@/components/dashboard/DaySelector';
 import MealPlanCard from '@/components/dashboard/MealPlanCard';
 import CalorieProgress from '@/components/dashboard/CalorieProgress';
@@ -14,6 +14,7 @@ import WeeklyCheckin from '@/components/dashboard/WeeklyCheckin';
 import RecipeModal from '@/components/recipes/RecipeModal';
 import AlternativeMeals from '@/components/dashboard/AlternativeMeals';
 import UserMenu from '@/components/UserMenu';
+import FoodLogModal from '@/components/nutrition/FoodLogModal';
 import { motion } from 'framer-motion';
 
 export default function Dashboard() {
@@ -25,6 +26,7 @@ export default function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showAlternatives, setShowAlternatives] = useState(null);
   const [user, setUser] = useState(null);
+  const [showFoodLog, setShowFoodLog] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -89,6 +91,17 @@ export default function Dashboard() {
     },
     enabled: !!profile,
     staleTime: 1 * 60 * 1000 // 1 minute
+  });
+
+  // Fetch food logs
+  const { data: foodLogs } = useQuery({
+    queryKey: ['foodLogs'],
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.FoodLog.filter({ created_by: currentUser.email });
+    },
+    enabled: !!profile,
+    staleTime: 1 * 60 * 1000
   });
 
   // Check if weekly checkin is needed
@@ -187,6 +200,18 @@ export default function Dashboard() {
     if (!currentPlan?.week_start_date) return null;
     const date = format(addDays(new Date(currentPlan.week_start_date), selectedDay), 'yyyy-MM-dd');
     return calorieLogs?.find(l => l.date === date);
+  };
+
+  const getTodayMacros = () => {
+    if (!currentPlan?.week_start_date) return { protein: 0, carbs: 0, fat: 0 };
+    const date = format(addDays(new Date(currentPlan.week_start_date), selectedDay), 'yyyy-MM-dd');
+    const todayFoodLogs = foodLogs?.filter(f => f.date === date) || [];
+    
+    return todayFoodLogs.reduce((acc, food) => ({
+      protein: acc.protein + (food.protein_g || 0),
+      carbs: acc.carbs + (food.carbs_g || 0),
+      fat: acc.fat + (food.fat_g || 0)
+    }), { protein: 0, carbs: 0, fat: 0 });
   };
 
   const getWeeklyLogs = () => {
@@ -353,6 +378,7 @@ export default function Dashboard() {
   const todayMeals = currentPlan?.days?.[selectedDay];
   const todayLog = getTodayLog();
   const todayConsumed = todayLog?.calories_consumed || 0;
+  const todayMacros = getTodayMacros();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
@@ -363,6 +389,16 @@ export default function Dashboard() {
           isLoading={isGenerating}
         />
       )}
+
+      <FoodLogModal
+        isOpen={showFoodLog}
+        onClose={() => setShowFoodLog(false)}
+        onFoodLogged={() => {
+          queryClient.invalidateQueries({ queryKey: ['foodLogs'] });
+          queryClient.invalidateQueries({ queryKey: ['calorieLogs'] });
+        }}
+        selectedDate={currentPlan ? format(addDays(new Date(currentPlan.week_start_date), selectedDay), 'yyyy-MM-dd') : null}
+      />
 
       <RecipeModal
         recipe={selectedRecipe}
@@ -568,7 +604,25 @@ export default function Dashboard() {
               dailyTarget={profile?.daily_calorie_target || 2000}
               consumed={todayConsumed}
               weeklyLogs={getWeeklyLogs()}
+              macros={todayMacros}
             />
+
+            {/* Quick Log Food */}
+            <Card className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg border-0 text-white">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-lg mb-2">Track Your Food</h3>
+                <p className="text-violet-100 text-sm mb-4">
+                  Scan barcodes or use AI to log meals and track macros
+                </p>
+                <Button
+                  onClick={() => setShowFoodLog(true)}
+                  className="w-full bg-white text-violet-700 hover:bg-violet-50 rounded-xl"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Log Food
+                </Button>
+              </CardContent>
+            </Card>
 
             {/* Profile Summary */}
             <Card className="bg-white rounded-2xl shadow-sm border-0">
