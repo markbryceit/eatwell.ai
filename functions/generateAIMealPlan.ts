@@ -120,19 +120,29 @@ AVAILABLE RECIPES:
 ${JSON.stringify(recipesByType, null, 2)}
 
 REQUIREMENTS:
-1. Create a COMPLETE 7-day meal plan with breakfast, lunch, dinner, and snack for EVERY day
-2. MUST select valid recipe IDs from the available recipes above
-3. NEVER leave any meal slot empty - every day must have all 4 meals
-4. Prioritize recipes the user has favorited or highly rated
-5. Include popular community recipes (high community_favorites and community_avg_rating)
-6. Ensure variety - don't repeat the same recipe more than twice in the week
-7. Match dietary preferences and avoid disliked ingredients
-8. Target calorie goals per meal (±200 kcal tolerance is acceptable)
-9. Balance macros across the week (adequate protein, fiber)
-10. Mix familiar recipes (user has cooked) with new discoveries
-11. If exact calorie match not available, prioritize recipe variety and nutritional balance
+1. CRITICAL: Create a COMPLETE 7-day meal plan with breakfast, lunch, dinner, and snack for EVERY day
+2. MUST select valid recipe IDs from the available recipes above - these IDs are REQUIRED
+3. NEVER leave any meal slot empty - every day MUST have all 4 meals filled
+4. For each meal type, try to get as close as possible to the target calories
+5. Prioritize recipes the user has favorited or highly rated when available
+6. Include popular community recipes (high community_favorites and community_avg_rating)
+7. Ensure variety - don't repeat the same recipe more than twice in the week
+8. Match dietary preferences and avoid disliked ingredients
+9. If a perfect calorie match isn't available, pick the closest option and balance it across other meals
+10. Balance macros across the week (adequate protein, fiber)
+11. Mix familiar recipes (user has cooked) with new discoveries
+12. TOTAL daily calories should be within ±300 of the target by combining all 4 meals
 
-CRITICAL: Return exactly 7 days, each with ALL 4 meals (breakfast, lunch, dinner, snack).`;
+CRITICAL VALIDATION:
+- Each day MUST have exactly 4 recipe IDs (breakfast_recipe_id, lunch_recipe_id, dinner_recipe_id, snack_recipe_id)
+- All recipe IDs MUST exist in the available recipes list above
+- Return exactly 7 days, no more, no less
+- NO null or empty values allowed for any meal
+
+Daily calorie distribution strategy:
+- Aim for ${calorie_target} total per day
+- If individual meal doesn't hit target, compensate with other meals
+- Better to be slightly off per meal but hit daily target overall`;
 
     const response = await base44.integrations.Core.InvokeLLM({
       prompt: prompt,
@@ -160,21 +170,48 @@ CRITICAL: Return exactly 7 days, each with ALL 4 meals (breakfast, lunch, dinner
       }
     });
 
-    // Calculate total calories for each day
-    const enrichedDays = response.days.map(day => {
+    // Validate and calculate total calories for each day
+    const enrichedDays = response.days.map((day, index) => {
       const breakfast = recipes.find(r => r.id === day.breakfast_recipe_id);
       const lunch = recipes.find(r => r.id === day.lunch_recipe_id);
       const dinner = recipes.find(r => r.id === day.dinner_recipe_id);
       const snack = recipes.find(r => r.id === day.snack_recipe_id);
       
+      // Fallback: if any meal is missing, select a random recipe of that type
+      const ensureMeal = (recipe, mealType, recipeId) => {
+        if (recipe) return recipeId;
+        const fallbackOptions = recipesByType[mealType];
+        if (fallbackOptions && fallbackOptions.length > 0) {
+          const fallback = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)];
+          console.warn(`Day ${index + 1}: Missing ${mealType}, using fallback ${fallback.id}`);
+          return fallback.id;
+        }
+        return recipeId; // Last resort, keep the original even if invalid
+      };
+
+      const validBreakfastId = ensureMeal(breakfast, 'breakfast', day.breakfast_recipe_id);
+      const validLunchId = ensureMeal(lunch, 'lunch', day.lunch_recipe_id);
+      const validDinnerId = ensureMeal(dinner, 'dinner', day.dinner_recipe_id);
+      const validSnackId = ensureMeal(snack, 'snack', day.snack_recipe_id);
+
+      // Recalculate with validated IDs
+      const validBreakfast = recipes.find(r => r.id === validBreakfastId);
+      const validLunch = recipes.find(r => r.id === validLunchId);
+      const validDinner = recipes.find(r => r.id === validDinnerId);
+      const validSnack = recipes.find(r => r.id === validSnackId);
+      
       const totalCalories = 
-        (breakfast?.calories || 0) +
-        (lunch?.calories || 0) +
-        (dinner?.calories || 0) +
-        (snack?.calories || 0);
+        (validBreakfast?.calories || 0) +
+        (validLunch?.calories || 0) +
+        (validDinner?.calories || 0) +
+        (validSnack?.calories || 0);
 
       return {
         ...day,
+        breakfast_recipe_id: validBreakfastId,
+        lunch_recipe_id: validLunchId,
+        dinner_recipe_id: validDinnerId,
+        snack_recipe_id: validSnackId,
         total_calories: totalCalories
       };
     });

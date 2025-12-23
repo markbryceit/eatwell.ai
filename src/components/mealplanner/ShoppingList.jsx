@@ -5,6 +5,32 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { X, Printer, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
+const categorizeIngredient = (ingredient) => {
+    const lower = ingredient.toLowerCase();
+    if (lower.includes('chicken') || lower.includes('beef') || lower.includes('pork') || 
+        lower.includes('fish') || lower.includes('turkey') || lower.includes('salmon')) {
+      return 'Protein';
+    }
+    if (lower.includes('lettuce') || lower.includes('tomato') || lower.includes('onion') || 
+        lower.includes('carrot') || lower.includes('pepper') || lower.includes('spinach') ||
+        lower.includes('broccoli') || lower.includes('cucumber')) {
+      return 'Vegetables';
+    }
+    if (lower.includes('apple') || lower.includes('banana') || lower.includes('orange') || 
+        lower.includes('berry') || lower.includes('grape') || lower.includes('lemon')) {
+      return 'Fruits';
+    }
+    if (lower.includes('milk') || lower.includes('cheese') || lower.includes('yogurt') || 
+        lower.includes('butter') || lower.includes('cream')) {
+      return 'Dairy';
+    }
+    if (lower.includes('rice') || lower.includes('bread') || lower.includes('pasta') || 
+        lower.includes('flour') || lower.includes('oats')) {
+      return 'Grains';
+    }
+    return 'Other';
+  };
+
 export default function ShoppingList({ isOpen, onClose, mealPlan, recipes }) {
   const [checkedItems, setCheckedItems] = useState({});
 
@@ -47,32 +73,6 @@ export default function ShoppingList({ isOpen, onClose, mealPlan, recipes }) {
 
     return grouped;
   }, [mealPlan, recipes]);
-
-  const categorizeIngredient = (ingredient) => {
-    const lower = ingredient.toLowerCase();
-    if (lower.includes('chicken') || lower.includes('beef') || lower.includes('pork') || 
-        lower.includes('fish') || lower.includes('turkey') || lower.includes('salmon')) {
-      return 'Protein';
-    }
-    if (lower.includes('lettuce') || lower.includes('tomato') || lower.includes('onion') || 
-        lower.includes('carrot') || lower.includes('pepper') || lower.includes('spinach') ||
-        lower.includes('broccoli') || lower.includes('cucumber')) {
-      return 'Vegetables';
-    }
-    if (lower.includes('apple') || lower.includes('banana') || lower.includes('orange') || 
-        lower.includes('berry') || lower.includes('grape') || lower.includes('lemon')) {
-      return 'Fruits';
-    }
-    if (lower.includes('milk') || lower.includes('cheese') || lower.includes('yogurt') || 
-        lower.includes('butter') || lower.includes('cream')) {
-      return 'Dairy';
-    }
-    if (lower.includes('rice') || lower.includes('bread') || lower.includes('pasta') || 
-        lower.includes('flour') || lower.includes('oats')) {
-      return 'Grains';
-    }
-    return 'Other';
-  };
 
   const toggleItem = (ingredient) => {
     setCheckedItems(prev => ({
