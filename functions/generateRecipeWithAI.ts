@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
@@ -85,7 +85,7 @@ Create a complete, balanced, and delicious recipe that:
           ingredients: { 
             type: "array", 
             items: { type: "string" },
-            description: "List of ingredients with quantities"
+            description: "List of ingredients with quantities and units (e.g., '2 cups diced chicken', '1 tbsp olive oil')"
           },
           instructions: { 
             type: "array", 

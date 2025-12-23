@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Clock, Flame, Users, Star, Check, Edit, Trash2, Sparkles } from "lucide-react";
+import { X, Clock, Flame, Users, Star, Check, Edit, Trash2, Sparkles, Lightbulb } from "lucide-react";
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import RatingStars from './RatingStars';
+import RecipeSubstitutions from './RecipeSubstitutions';
 
 export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onToggleFavorite, onEdit, onDelete, onGenerateVariation }) {
   const queryClient = useQueryClient();
   const [userRating, setUserRating] = useState(0);
+  const [showSubstitutions, setShowSubstitutions] = useState(false);
 
   const { data: ratings } = useQuery({
     queryKey: ['recipeRatings', recipe?.id],
@@ -203,6 +205,14 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
                 <Star className={`w-5 h-5 mr-2 ${isFavorite ? 'fill-amber-400 text-amber-400' : ''}`} />
                 {isFavorite ? 'Saved' : 'Save Recipe'}
               </Button>
+              <Button
+                variant="outline"
+                className="flex-1 h-12 rounded-xl border-amber-200 text-amber-600 hover:bg-amber-50"
+                onClick={() => setShowSubstitutions(true)}
+              >
+                <Lightbulb className="w-5 h-5 mr-2" />
+                Substitutions
+              </Button>
               {onGenerateVariation && (
                 <Button
                   variant="outline"
@@ -241,9 +251,15 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
                 Done
               </Button>
             </div>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
+            </div>
+            </motion.div>
+
+            <RecipeSubstitutions
+            recipe={recipe}
+            isOpen={showSubstitutions}
+            onClose={() => setShowSubstitutions(false)}
+            />
+            </motion.div>
+            </AnimatePresence>
+            );
+            }
