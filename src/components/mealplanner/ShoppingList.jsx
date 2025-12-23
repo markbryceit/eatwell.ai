@@ -2,8 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X, Printer, Download } from 'lucide-react';
+import { X, Printer, Download, Truck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import GroceryDeliveryOptions from './GroceryDeliveryOptions';
 
 const categorizeIngredient = (ingredient) => {
     const lower = ingredient.toLowerCase();
@@ -33,6 +35,7 @@ const categorizeIngredient = (ingredient) => {
 
 export default function ShoppingList({ isOpen, onClose, mealPlan, recipes }) {
   const [checkedItems, setCheckedItems] = useState({});
+  const [activeTab, setActiveTab] = useState('list');
 
   const shoppingList = useMemo(() => {
     if (!mealPlan || !recipes) return {};
@@ -132,7 +135,7 @@ export default function ShoppingList({ isOpen, onClose, mealPlan, recipes }) {
             <div>
               <h2 className="text-2xl font-bold text-slate-900">Shopping List</h2>
               <p className="text-slate-500 mt-1">
-                {checkedCount} of {totalItems} items checked
+                {checkedCount} of {totalItems} items
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -148,8 +151,18 @@ export default function ShoppingList({ isOpen, onClose, mealPlan, recipes }) {
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[calc(85vh-180px)]">
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+            <TabsList className="mx-6 mt-4">
+              <TabsTrigger value="list" className="flex-1">My List</TabsTrigger>
+              <TabsTrigger value="delivery" className="flex-1 flex items-center gap-2">
+                <Truck className="w-4 h-4" />
+                Order Online
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Content */}
+            <TabsContent value="list" className="p-6 overflow-y-auto flex-1">
             {totalItems > 0 ? (
               <div className="space-y-6">
                 {Object.entries(shoppingList).map(([category, items]) => (
@@ -193,7 +206,15 @@ export default function ShoppingList({ isOpen, onClose, mealPlan, recipes }) {
                 </p>
               </div>
             )}
-          </div>
+            </TabsContent>
+
+            <TabsContent value="delivery" className="p-6 overflow-y-auto flex-1">
+              <GroceryDeliveryOptions 
+                shoppingList={shoppingList}
+                onClose={onClose}
+              />
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </motion.div>
     </AnimatePresence>
