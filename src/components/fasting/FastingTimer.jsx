@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Clock, Play, Square, Timer, Flame, TrendingUp } from 'lucide-react';
@@ -159,21 +160,19 @@ export default function FastingTimer() {
             <div className="space-y-4">
               <div>
                 <Label className="text-white mb-2 block">Fasting Duration</Label>
-                <div className="flex gap-2">
-                  {[12, 14, 16, 18, 20, 24].map((hrs) => (
-                    <button
-                      key={hrs}
-                      onClick={() => setTargetHours(hrs)}
-                      className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all ${
-                        targetHours === hrs
-                          ? 'bg-white text-orange-600'
-                          : 'bg-white/20 text-white hover:bg-white/30'
-                      }`}
-                    >
-                      {hrs}h
-                    </button>
-                  ))}
-                </div>
+                <Select value={targetHours.toString()} onValueChange={(val) => setTargetHours(parseInt(val))}>
+                  <SelectTrigger className="w-full bg-white/20 border-white/30 text-white h-12 rounded-xl">
+                    <SelectValue placeholder="Select duration" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="12">12 hours</SelectItem>
+                    <SelectItem value="14">14 hours</SelectItem>
+                    <SelectItem value="16">16 hours</SelectItem>
+                    <SelectItem value="18">18 hours</SelectItem>
+                    <SelectItem value="20">20 hours</SelectItem>
+                    <SelectItem value="24">24 hours</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <Button
