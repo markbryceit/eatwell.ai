@@ -10,6 +10,7 @@ import MealPlanner from './pages/MealPlanner';
 import Onboarding from './pages/Onboarding';
 import Progress from './pages/Progress';
 import Recipes from './pages/Recipes';
+import NutritionCoach from './pages/NutritionCoach';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "Onboarding": Onboarding,
     "Progress": Progress,
     "Recipes": Recipes,
+    "NutritionCoach": NutritionCoach,
 }
 
 export const pagesConfig = {
