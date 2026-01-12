@@ -36,7 +36,7 @@ export default function AdminRecipeUpload() {
 
     try {
       // First, upload the PDF file
-      const { data: uploadResult } = await base44.functions.invoke('Core.UploadFile', { file });
+      const uploadResult = await base44.integrations.Core.UploadFile({ file });
       const fileUrl = uploadResult.file_url;
 
       setIsUploading(false);
@@ -53,6 +53,7 @@ export default function AdminRecipeUpload() {
         setError(extractionResult.error || 'Failed to extract recipes');
       }
     } catch (err) {
+      console.error('Upload error:', err);
       setError(err.message || 'An error occurred during upload');
     } finally {
       setIsUploading(false);

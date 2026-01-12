@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
@@ -76,8 +76,15 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // Enrich recipes with health scores and image URLs if needed
+    const enrichedRecipes = recipes.map(recipe => ({
+      ...recipe,
+      health_score: recipe.health_score || 'green',
+      image_url: recipe.image_url || null
+    }));
+
     // Create recipe records using service role
-    const createdRecipes = await base44.asServiceRole.entities.Recipe.bulkCreate(recipes);
+    const createdRecipes = await base44.asServiceRole.entities.Recipe.bulkCreate(enrichedRecipes);
 
     return Response.json({
       success: true,
@@ -87,6 +94,10 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error extracting recipes from PDF:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ 
+      success: false,
+      error: error.message || 'Failed to process PDF',
+      details: error.stack
+    }, { status: 500 });
   }
 });
