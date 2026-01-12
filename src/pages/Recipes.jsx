@@ -323,7 +323,7 @@ export default function Recipes() {
 
       <div className="max-w-6xl mx-auto px-4 py-8 overflow-x-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 w-full">
           <div className="flex items-center gap-4">
             <Link to={createPageUrl('Dashboard')}>
               <Button variant="ghost" size="icon" className="rounded-xl">
@@ -337,7 +337,7 @@ export default function Recipes() {
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap w-full sm:w-auto">
             <Button
               onClick={() => setShowAIGenerator(true)}
               className="bg-violet-600 hover:bg-violet-700 rounded-xl"

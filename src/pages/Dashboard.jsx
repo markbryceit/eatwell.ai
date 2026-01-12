@@ -442,7 +442,7 @@ export default function Dashboard() {
 
       <div className="max-w-6xl mx-auto px-4 py-8 overflow-x-hidden">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 w-full">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Your Meal Plan</h1>
             <div className="flex items-center gap-2 mt-1">
@@ -461,7 +461,7 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap max-w-full">
             <UserMenu />
             <Button
               variant="outline"
