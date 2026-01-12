@@ -3,10 +3,10 @@ import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format, startOfWeek, addDays, differenceInDays, parseISO } from 'date-fns';
+import { format, startOfWeek, addDays, differenceInDays, parseISO, addWeeks, isSameWeek } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload, Sparkles, GraduationCap, Users, TrendingUp, UtensilsCrossed, Plus } from "lucide-react";
+import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload, Sparkles, GraduationCap, Users, TrendingUp, UtensilsCrossed, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import DaySelector from '@/components/dashboard/DaySelector';
 import MealPlanCard from '@/components/dashboard/MealPlanCard';
 import CalorieProgress from '@/components/dashboard/CalorieProgress';
@@ -20,6 +20,7 @@ import { motion } from 'framer-motion';
 export default function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [selectedWeekStart, setSelectedWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedDay, setSelectedDay] = useState(0);
   const [showCheckin, setShowCheckin] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
@@ -52,17 +53,22 @@ export default function Dashboard() {
 
   const profile = profiles?.[0];
 
-  // Fetch current meal plan
+  // Fetch meal plan for the selected week
   const { data: mealPlans, isLoading: planLoading } = useQuery({
-    queryKey: ['mealPlans'],
+    queryKey: ['mealPlans', format(selectedWeekStart, 'yyyy-MM-dd')],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
-      return base44.entities.MealPlan.filter({ is_active: true, created_by: currentUser.email });
+      const weekStartStr = format(selectedWeekStart, 'yyyy-MM-dd');
+      return base44.entities.MealPlan.filter({ 
+        week_start_date: weekStartStr,
+        created_by: currentUser.email 
+      });
     },
     staleTime: 2 * 60 * 1000 // 2 minutes
   });
 
   const currentPlan = mealPlans?.[0];
+  const isCurrentWeek = isSameWeek(selectedWeekStart, new Date(), { weekStartsOn: 1 });
 
   // Fetch all recipes
   const { data: recipes, isLoading: recipesLoading } = useQuery({
@@ -115,17 +121,20 @@ export default function Dashboard() {
     }
   }, [profile]);
 
-  // Set selected day to today
+  // Set selected day to today (only for current week)
   useEffect(() => {
-    if (currentPlan?.week_start_date) {
-      const weekStart = new Date(currentPlan.week_start_date);
+    if (isCurrentWeek) {
       const today = new Date();
-      const dayIndex = differenceInDays(today, weekStart);
+      const dayIndex = differenceInDays(today, selectedWeekStart);
       if (dayIndex >= 0 && dayIndex < 7) {
         setSelectedDay(dayIndex);
+      } else {
+        setSelectedDay(0);
       }
+    } else {
+      setSelectedDay(0);
     }
-  }, [currentPlan]);
+  }, [selectedWeekStart, isCurrentWeek]);
 
   const getRecipeById = (id) => recipes?.find(r => r.id === id);
   
@@ -190,21 +199,18 @@ export default function Dashboard() {
   });
 
   const isMealCompleted = (dayIndex, mealType) => {
-    if (!currentPlan?.week_start_date) return false;
-    const date = format(addDays(new Date(currentPlan.week_start_date), dayIndex), 'yyyy-MM-dd');
+    const date = format(addDays(selectedWeekStart, dayIndex), 'yyyy-MM-dd');
     const log = calorieLogs?.find(l => l.date === date);
     return log?.meals_logged?.find(m => m.meal_type === mealType)?.completed || false;
   };
 
   const getTodayLog = () => {
-    if (!currentPlan?.week_start_date) return null;
-    const date = format(addDays(new Date(currentPlan.week_start_date), selectedDay), 'yyyy-MM-dd');
+    const date = format(addDays(selectedWeekStart, selectedDay), 'yyyy-MM-dd');
     return calorieLogs?.find(l => l.date === date);
   };
 
   const getTodayMacros = () => {
-    if (!currentPlan?.week_start_date) return { protein: 0, carbs: 0, fat: 0 };
-    const date = format(addDays(new Date(currentPlan.week_start_date), selectedDay), 'yyyy-MM-dd');
+    const date = format(addDays(selectedWeekStart, selectedDay), 'yyyy-MM-dd');
     const todayFoodLogs = foodLogs?.filter(f => f.date === date) || [];
     
     return todayFoodLogs.reduce((acc, food) => ({
@@ -215,12 +221,22 @@ export default function Dashboard() {
   };
 
   const getWeeklyLogs = () => {
-    if (!currentPlan?.week_start_date) return [];
-    const weekStart = new Date(currentPlan.week_start_date);
     return Array.from({ length: 7 }, (_, i) => {
-      const date = format(addDays(weekStart, i), 'yyyy-MM-dd');
+      const date = format(addDays(selectedWeekStart, i), 'yyyy-MM-dd');
       return calorieLogs?.find(l => l.date === date) || { date, calories_consumed: 0 };
     });
+  };
+
+  const handlePreviousWeek = () => {
+    setSelectedWeekStart(prev => addWeeks(prev, -1));
+  };
+
+  const handleNextWeek = () => {
+    setSelectedWeekStart(prev => addWeeks(prev, 1));
+  };
+
+  const handleGoToCurrentWeek = () => {
+    setSelectedWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
   };
 
   const handleWeeklyCheckin = async (data) => {
@@ -397,7 +413,7 @@ export default function Dashboard() {
           queryClient.invalidateQueries({ queryKey: ['foodLogs'] });
           queryClient.invalidateQueries({ queryKey: ['calorieLogs'] });
         }}
-        selectedDate={currentPlan ? format(addDays(new Date(currentPlan.week_start_date), selectedDay), 'yyyy-MM-dd') : null}
+        selectedDate={format(addDays(selectedWeekStart, selectedDay), 'yyyy-MM-dd')}
       />
 
       <RecipeModal
@@ -428,9 +444,21 @@ export default function Dashboard() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Your Meal Plan</h1>
-            <p className="text-slate-500 mt-1">
-              {currentPlan ? `Week of ${format(new Date(currentPlan.week_start_date), 'MMM d')}` : 'No active plan'}
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-slate-500">
+                Week of {format(selectedWeekStart, 'MMM d, yyyy')}
+              </p>
+              {!isCurrentWeek && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleGoToCurrentWeek}
+                  className="text-emerald-600 hover:text-emerald-700 h-6 px-2"
+                >
+                  Go to current week
+                </Button>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <UserMenu />
@@ -527,16 +555,45 @@ export default function Dashboard() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Day Selector */}
-            {currentPlan && (
-              <Card className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border-0 p-4">
+            {/* Week Navigation */}
+            <Card className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border-0 p-4">
+              <div className="flex items-center justify-between mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handlePreviousWeek}
+                  className="rounded-xl"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Previous
+                </Button>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-slate-900">
+                    {format(selectedWeekStart, 'MMM d')} - {format(addDays(selectedWeekStart, 6), 'MMM d, yyyy')}
+                  </p>
+                  {!isCurrentWeek && (
+                    <p className="text-xs text-slate-500">Viewing past week</p>
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleNextWeek}
+                  disabled={isSameWeek(addWeeks(selectedWeekStart, 1), new Date(), { weekStartsOn: 1 }) || addWeeks(selectedWeekStart, 1) > new Date()}
+                  className="rounded-xl"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+              {currentPlan && (
                 <DaySelector
-                  weekStartDate={currentPlan.week_start_date}
+                  weekStartDate={format(selectedWeekStart, 'yyyy-MM-dd')}
                   selectedDay={selectedDay}
                   onSelectDay={setSelectedDay}
                 />
-              </Card>
-            )}
+              )}
+            </Card>
 
             {/* Meals for Selected Day */}
             {currentPlan && todayMeals ? (
@@ -564,8 +621,8 @@ export default function Dashboard() {
                         isFavorite={recipe ? isFavorite(recipe.id) : false}
                         onToggleFavorite={() => recipe && toggleFavorite.mutate(recipe.id)}
                         onMarkComplete={() => {
-                          if (recipe && currentPlan) {
-                            const date = addDays(new Date(currentPlan.week_start_date), selectedDay);
+                          if (recipe) {
+                            const date = addDays(selectedWeekStart, selectedDay);
                             logMeal.mutate({ recipe, date, mealType });
                           }
                         }}
@@ -579,20 +636,29 @@ export default function Dashboard() {
             ) : (
               <Card className="bg-white rounded-2xl shadow-sm border-0 p-12 text-center">
                 <ChefHat className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">No Meal Plan Yet</h3>
-                <p className="text-slate-500 mb-6">Generate your first personalized meal plan</p>
-                <Button
-                  onClick={handleGenerateNewPlan}
-                  disabled={isGenerating}
-                  className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
-                >
-                  {isGenerating ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Calendar className="w-4 h-4 mr-2" />
-                  )}
-                  Generate Meal Plan
-                </Button>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                  {isCurrentWeek ? 'No Meal Plan Yet' : 'No Meal Plan for This Week'}
+                </h3>
+                <p className="text-slate-500 mb-6">
+                  {isCurrentWeek 
+                    ? 'Generate your personalized meal plan for this week'
+                    : 'This week does not have a meal plan. You can still log meals manually.'
+                  }
+                </p>
+                {isCurrentWeek && (
+                  <Button
+                    onClick={handleGenerateNewPlan}
+                    disabled={isGenerating}
+                    className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Calendar className="w-4 h-4 mr-2" />
+                    )}
+                    Generate Meal Plan
+                  </Button>
+                )}
               </Card>
             )}
           </div>
