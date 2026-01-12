@@ -15,6 +15,7 @@ import RecipeModal from '@/components/recipes/RecipeModal';
 import AlternativeMeals from '@/components/dashboard/AlternativeMeals';
 import UserMenu from '@/components/UserMenu';
 import FoodLogModal from '@/components/nutrition/FoodLogModal';
+import FastingTimer from '@/components/fasting/FastingTimer';
 import { motion } from 'framer-motion';
 
 export default function Dashboard() {
@@ -672,6 +673,9 @@ export default function Dashboard() {
               weeklyLogs={getWeeklyLogs()}
               macros={todayMacros}
             />
+
+            {/* Intermittent Fasting */}
+            <FastingTimer />
 
             {/* Quick Log Food */}
             <Card className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg border-0 text-white">
