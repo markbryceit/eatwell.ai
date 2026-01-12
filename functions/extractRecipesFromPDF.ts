@@ -76,11 +76,31 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Enrich recipes with health scores and image URLs if needed
-    const enrichedRecipes = recipes.map(recipe => ({
-      ...recipe,
-      health_score: recipe.health_score || 'green',
-      image_url: recipe.image_url || null
+    // Process recipes to extract/generate images
+    const enrichedRecipes = await Promise.all(recipes.map(async (recipe) => {
+      let imageUrl = recipe.image_url || null;
+      
+      // If no image exists, generate one using AI
+      if (!imageUrl) {
+        try {
+          const imagePrompt = `A professional, appetizing food photography style image of ${recipe.name}. ${recipe.description || ''}. High quality, well-lit, restaurant presentation style.`;
+          
+          const generatedImage = await base44.asServiceRole.integrations.Core.GenerateImage({
+            prompt: imagePrompt
+          });
+          
+          imageUrl = generatedImage.url;
+        } catch (error) {
+          console.error(`Failed to generate image for ${recipe.name}:`, error);
+          // Continue without image if generation fails
+        }
+      }
+      
+      return {
+        ...recipe,
+        health_score: recipe.health_score || 'green',
+        image_url: imageUrl
+      };
     }));
 
     // Create recipe records using service role
