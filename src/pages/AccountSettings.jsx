@@ -62,7 +62,7 @@ export default function AccountSettings() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-8 overflow-x-hidden">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Button

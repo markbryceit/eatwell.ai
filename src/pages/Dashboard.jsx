@@ -440,7 +440,7 @@ export default function Dashboard() {
         />
       )}
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8 overflow-x-hidden">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
@@ -553,7 +553,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-6 w-full">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Week Navigation */}
