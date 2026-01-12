@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, ArrowRight, Loader2, Target, Ruler, Scale, Activity, Utensils } from "lucide-react";
 
 const activityLevels = [
@@ -38,6 +39,11 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
     dietary_preferences: []
   });
 
+  const [heightUnit, setHeightUnit] = useState("cm");
+  const [heightFeet, setHeightFeet] = useState("");
+  const [heightInches, setHeightInches] = useState("");
+  const [weightUnit, setWeightUnit] = useState("kg");
+
   const totalSteps = 4;
 
   const handleNext = () => {
@@ -54,6 +60,33 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
 
   const updateField = (field, value) => {
     setFormData({ ...formData, [field]: value });
+  };
+
+  const convertHeightToCm = (feet, inches) => {
+    const totalInches = parseFloat(feet || 0) * 12 + parseFloat(inches || 0);
+    return Math.round(totalInches * 2.54 * 10) / 10;
+  };
+
+  const convertWeightToKg = (value, unit) => {
+    if (unit === "kg") return parseFloat(value);
+    if (unit === "lbs") return Math.round(parseFloat(value) * 0.453592 * 10) / 10;
+    if (unit === "stone") return Math.round(parseFloat(value) * 6.35029 * 10) / 10;
+    return parseFloat(value);
+  };
+
+  const handleHeightChange = (value) => {
+    if (heightUnit === "cm") {
+      updateField("height_cm", value);
+    } else {
+      // Feet/inches - update when both are set
+      const cm = convertHeightToCm(heightFeet, heightInches);
+      if (cm > 0) updateField("height_cm", cm);
+    }
+  };
+
+  const handleWeightChange = (value) => {
+    const kg = convertWeightToKg(value, weightUnit);
+    updateField("weight_kg", kg);
   };
 
   const toggleDietary = (option) => {
@@ -183,26 +216,75 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
               {step === 2 && (
                 <div className="space-y-6">
                   <div>
-                    <Label htmlFor="height" className="text-slate-700 mb-3 block">Height (cm)</Label>
-                    <Input
-                      id="height"
-                      type="number"
-                      placeholder="e.g., 175"
-                      value={formData.height_cm}
-                      onChange={(e) => updateField("height_cm", e.target.value)}
-                      className="h-14 rounded-xl text-lg"
-                    />
+                    <Label className="text-slate-700 mb-3 block">Height</Label>
+                    <div className="flex gap-3">
+                      <Select value={heightUnit} onValueChange={setHeightUnit}>
+                        <SelectTrigger className="w-32 h-14 rounded-xl">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cm">cm</SelectItem>
+                          <SelectItem value="ft">ft/in</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {heightUnit === "cm" ? (
+                        <Input
+                          type="number"
+                          placeholder="e.g., 175"
+                          value={formData.height_cm}
+                          onChange={(e) => {
+                            updateField("height_cm", e.target.value);
+                          }}
+                          className="flex-1 h-14 rounded-xl text-lg"
+                        />
+                      ) : (
+                        <>
+                          <Input
+                            type="number"
+                            placeholder="Feet"
+                            value={heightFeet}
+                            onChange={(e) => {
+                              setHeightFeet(e.target.value);
+                              const cm = convertHeightToCm(e.target.value, heightInches);
+                              if (cm > 0) updateField("height_cm", cm);
+                            }}
+                            className="flex-1 h-14 rounded-xl text-lg"
+                          />
+                          <Input
+                            type="number"
+                            placeholder="Inches"
+                            value={heightInches}
+                            onChange={(e) => {
+                              setHeightInches(e.target.value);
+                              const cm = convertHeightToCm(heightFeet, e.target.value);
+                              if (cm > 0) updateField("height_cm", cm);
+                            }}
+                            className="flex-1 h-14 rounded-xl text-lg"
+                          />
+                        </>
+                      )}
+                    </div>
                   </div>
                   <div>
-                    <Label htmlFor="weight" className="text-slate-700 mb-3 block">Weight (kg)</Label>
-                    <Input
-                      id="weight"
-                      type="number"
-                      placeholder="e.g., 70"
-                      value={formData.weight_kg}
-                      onChange={(e) => updateField("weight_kg", e.target.value)}
-                      className="h-14 rounded-xl text-lg"
-                    />
+                    <Label className="text-slate-700 mb-3 block">Weight</Label>
+                    <div className="flex gap-3">
+                      <Select value={weightUnit} onValueChange={setWeightUnit}>
+                        <SelectTrigger className="w-32 h-14 rounded-xl">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="kg">kg</SelectItem>
+                          <SelectItem value="lbs">lbs</SelectItem>
+                          <SelectItem value="stone">stone</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        placeholder={weightUnit === "kg" ? "e.g., 70" : weightUnit === "lbs" ? "e.g., 154" : "e.g., 11"}
+                        onChange={(e) => handleWeightChange(e.target.value)}
+                        className="flex-1 h-14 rounded-xl text-lg"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
