@@ -34,9 +34,13 @@ export default function Recipes() {
     includeIngredients: [],
     excludeIngredients: [],
     dietaryTags: [],
+    cuisineTypes: [],
     maxPrepTime: 180,
     calorieRange: [0, 2000]
   });
+  const [smartSearchQuery, setSmartSearchQuery] = useState('');
+  const [isSmartSearching, setIsSmartSearching] = useState(false);
+  const [smartSearchResults, setSmartSearchResults] = useState(null);
   const [aiRecommendations, setAiRecommendations] = useState([]);
   const [showAISection, setShowAISection] = useState(true);
   const [recipeToAdd, setRecipeToAdd] = useState(null);
@@ -159,7 +163,30 @@ export default function Recipes() {
     }
   };
 
-  const filteredRecipes = recipes?.filter(recipe => {
+  const handleSmartSearch = async () => {
+    if (!smartSearchQuery.trim()) {
+      setSmartSearchResults(null);
+      return;
+    }
+
+    setIsSmartSearching(true);
+    try {
+      const { data } = await base44.functions.invoke('smartRecipeSearch', {
+        query: smartSearchQuery
+      });
+      setSmartSearchResults(data);
+      toast.success(`Found ${data.totalResults} recipes`);
+    } catch (error) {
+      toast.error('Smart search failed');
+      console.error(error);
+    }
+    setIsSmartSearching(false);
+  };
+
+  const filteredRecipes = (smartSearchResults?.recipes || recipes)?.filter(recipe => {
+    // If smart search is active, results are already filtered
+    if (smartSearchResults) return true;
+
     // Basic filters
     const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       recipe.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -177,6 +204,10 @@ export default function Recipes() {
     const matchesDietaryTags = advancedFilters.dietaryTags.length === 0 ||
       advancedFilters.dietaryTags.some(tag => recipe.dietary_tags?.includes(tag));
     
+    // Advanced filters - cuisine types
+    const matchesCuisineTypes = advancedFilters.cuisineTypes.length === 0 ||
+      advancedFilters.cuisineTypes.includes(recipe.cuisine_type);
+    
     // Advanced filters - prep time
     const totalTime = (recipe.prep_time_mins || 0) + (recipe.cook_time_mins || 0);
     const matchesPrepTime = advancedFilters.maxPrepTime >= 180 || totalTime <= advancedFilters.maxPrepTime;
@@ -187,7 +218,7 @@ export default function Recipes() {
     
     return matchesSearch && matchesMealType && matchesFavorite && 
            matchesIncludeIngredients && matchesExcludeIngredients &&
-           matchesDietaryTags && matchesPrepTime && matchesCalories;
+           matchesDietaryTags && matchesCuisineTypes && matchesPrepTime && matchesCalories;
   }) || [];
 
   const resetAdvancedFilters = () => {
@@ -195,9 +226,17 @@ export default function Recipes() {
       includeIngredients: [],
       excludeIngredients: [],
       dietaryTags: [],
+      cuisineTypes: [],
       maxPrepTime: 180,
       calorieRange: [0, 2000]
     });
+    setSmartSearchResults(null);
+    setSmartSearchQuery('');
+  };
+
+  const clearSmartSearch = () => {
+    setSmartSearchResults(null);
+    setSmartSearchQuery('');
   };
 
   const handleRecipeGenerated = (recipe) => {
@@ -221,6 +260,7 @@ export default function Recipes() {
   };
 
   const dietaryTags = [...new Set(recipes?.flatMap(r => r.dietary_tags || []))];
+  const cuisineTypes = [...new Set(recipes?.map(r => r.cuisine_type).filter(Boolean))];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
@@ -357,6 +397,54 @@ export default function Recipes() {
           </div>
         </div>
 
+        {/* Smart Search */}
+        <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl shadow-lg p-6 mb-6 text-white">
+          <div className="flex items-center gap-3 mb-3">
+            <Sparkles className="w-6 h-6" />
+            <div>
+              <h3 className="font-semibold text-lg">Smart Recipe Search</h3>
+              <p className="text-violet-100 text-sm">Try: "quick vegan dinner under 400 calories" or "high protein breakfast with eggs"</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Describe what you're looking for in natural language..."
+              value={smartSearchQuery}
+              onChange={(e) => setSmartSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSmartSearch()}
+              className="h-12 rounded-xl bg-white/20 border-white/30 text-white placeholder:text-violet-200"
+            />
+            <Button
+              onClick={handleSmartSearch}
+              disabled={isSmartSearching || !smartSearchQuery.trim()}
+              className="h-12 px-6 bg-white text-violet-600 hover:bg-violet-50 rounded-xl"
+            >
+              {isSmartSearching ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Search
+                </>
+              )}
+            </Button>
+            {smartSearchResults && (
+              <Button
+                variant="outline"
+                onClick={clearSmartSearch}
+                className="h-12 rounded-xl border-white/30 text-white hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            )}
+          </div>
+          {smartSearchResults && (
+            <div className="mt-3 text-violet-100 text-sm">
+              Found {smartSearchResults.totalResults} recipes matching your search
+            </div>
+          )}
+        </div>
+
         {/* Search and Filters */}
         <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 space-y-4">
           <div className="flex flex-col md:flex-row gap-4">
@@ -365,7 +453,10 @@ export default function Recipes() {
               <Input
                 placeholder="Search recipes by name or description..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (smartSearchResults) clearSmartSearch();
+                }}
                 className="pl-12 h-12 rounded-xl border-slate-200"
               />
             </div>
@@ -379,8 +470,12 @@ export default function Recipes() {
             </Button>
             <AdvancedFilters
               filters={advancedFilters}
-              onFiltersChange={setAdvancedFilters}
+              onFiltersChange={(newFilters) => {
+                setAdvancedFilters(newFilters);
+                if (smartSearchResults) clearSmartSearch();
+              }}
               availableDietaryTags={dietaryTags}
+              availableCuisines={cuisineTypes}
               onReset={resetAdvancedFilters}
             />
           </div>

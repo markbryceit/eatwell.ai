@@ -16,6 +16,7 @@ export default function AdvancedFilters({
   filters, 
   onFiltersChange, 
   availableDietaryTags,
+  availableCuisines,
   onReset 
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -56,10 +57,21 @@ export default function AdvancedFilters({
     });
   };
 
+  const toggleCuisine = (cuisine) => {
+    const isSelected = filters.cuisineTypes.includes(cuisine);
+    onFiltersChange({
+      ...filters,
+      cuisineTypes: isSelected 
+        ? filters.cuisineTypes.filter(c => c !== cuisine)
+        : [...filters.cuisineTypes, cuisine]
+    });
+  };
+
   const activeFiltersCount = 
     filters.includeIngredients.length +
     filters.excludeIngredients.length +
     filters.dietaryTags.length +
+    filters.cuisineTypes.length +
     (filters.maxPrepTime < 180 ? 1 : 0) +
     (filters.calorieRange[0] > 0 || filters.calorieRange[1] < 2000 ? 1 : 0);
 
@@ -191,7 +203,7 @@ export default function AdvancedFilters({
           {/* Dietary Tags */}
           {availableDietaryTags.length > 0 && (
             <div className="space-y-2">
-              <Label>Dietary Tags</Label>
+              <Label>Dietary Restrictions</Label>
               <div className="flex flex-wrap gap-2">
                 {availableDietaryTags.map((tag) => (
                   <Badge
@@ -205,6 +217,29 @@ export default function AdvancedFilters({
                     onClick={() => toggleDietaryTag(tag)}
                   >
                     {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Cuisine Type */}
+          {availableCuisines.length > 0 && (
+            <div className="space-y-2">
+              <Label>Cuisine Type</Label>
+              <div className="flex flex-wrap gap-2">
+                {availableCuisines.map((cuisine) => (
+                  <Badge
+                    key={cuisine}
+                    variant={filters.cuisineTypes.includes(cuisine) ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      filters.cuisineTypes.includes(cuisine)
+                        ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                        : 'hover:bg-slate-100'
+                    }`}
+                    onClick={() => toggleCuisine(cuisine)}
+                  >
+                    {cuisine.replace('_', ' ')}
                   </Badge>
                 ))}
               </div>
