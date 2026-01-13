@@ -19,6 +19,7 @@ export default function AppNavigation({ user }) {
     { label: 'Goals', icon: Target, page: 'Goals', color: 'text-amber-600' },
     { label: 'Progress', icon: TrendingUp, page: 'Progress', color: 'text-emerald-600' },
     { label: 'Recipes', icon: BookOpen, page: 'Recipes', color: 'text-slate-700' },
+    { label: 'Kids Meals', icon: null, page: 'KidsMeals', color: 'text-pink-600', emoji: '👶' },
     { label: 'Discover', icon: Sparkles, page: 'Discover', color: 'text-violet-600' },
     { label: 'Planner', icon: Calendar, page: 'MealPlanner', color: 'text-slate-700' },
     { label: 'Fridge Scanner', icon: Camera, page: 'FridgeScanner', color: 'text-teal-600' },
@@ -102,7 +103,11 @@ export default function AppNavigation({ user }) {
                         className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors text-left group"
                       >
                         <div className={`p-2 rounded-lg bg-slate-50 group-hover:bg-white transition-colors ${item.color}`}>
-                          <Icon className="w-5 h-5" />
+                          {item.emoji ? (
+                            <span className="text-xl">{item.emoji}</span>
+                          ) : (
+                            <Icon className="w-5 h-5" />
+                          )}
                         </div>
                         <span className="font-medium text-slate-700 group-hover:text-slate-900">
                           {item.label}
