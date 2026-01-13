@@ -502,6 +502,15 @@ export default function Dashboard() {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => navigate(createPageUrl('NutritionInsights'))}
+              className="rounded-xl border-purple-200 text-purple-600 hover:bg-purple-50"
+            >
+              <TrendingUp className="w-4 h-4 mr-1" />
+              Insights
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => navigate(createPageUrl('NutritionCoach'))}
               className="rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50"
             >
