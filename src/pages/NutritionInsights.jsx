@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, TrendingUp, TrendingDown, Target, Award, AlertTriangle, CheckCircle2, BookOpen, Sparkles, Activity } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Target, Award, AlertTriangle, CheckCircle2, BookOpen, Sparkles, Activity, Flag } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { format, subDays, subWeeks, subMonths, parseISO, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -53,6 +53,14 @@ export default function NutritionInsights() {
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.WeightLog.filter({ created_by: currentUser.email }, '-date');
+    }
+  });
+
+  const { data: goals } = useQuery({
+    queryKey: ['goals'],
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.Goal.filter({ created_by: currentUser.email, status: 'active' });
     }
   });
 
@@ -152,10 +160,29 @@ export default function NutritionInsights() {
     };
   }, [foodLogs, calorieLogs, exerciseLogs, weightLogs, timeframe, profile]);
 
-  // Recommendations based on data
+  // Recommendations based on data and goals
   const recommendations = useMemo(() => {
     if (!insights || !profile) return [];
     const recs = [];
+
+    // Goal-based recommendations
+    if (goals && goals.length > 0) {
+      goals.forEach(goal => {
+        const progress = goal.start_value && goal.target_value
+          ? ((goal.current_value - goal.start_value) / (goal.target_value - goal.start_value)) * 100
+          : 0;
+        
+        if (progress < 25) {
+          recs.push({
+            type: 'info',
+            title: `Goal: ${goal.title}`,
+            description: `You're at ${Math.round(progress)}% progress. ${goal.notes || 'Stay focused on your goal!'}`,
+            action: 'View goals',
+            actionUrl: 'Goals'
+          });
+        }
+      });
+    }
 
     // Protein recommendation
     const proteinTarget = profile.health_goal === 'gain_muscle' ? profile.weight_kg * 2 : profile.weight_kg * 1.6;
@@ -249,13 +276,23 @@ export default function NutritionInsights() {
               <p className="text-slate-500">Comprehensive analysis of your nutrition journey</p>
             </div>
           </div>
-          <Button
-            onClick={() => navigate(createPageUrl('NutritionCoach'))}
-            className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            AI Coach
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate(createPageUrl('Goals'))}
+              className="rounded-xl border-amber-200 text-amber-600 hover:bg-amber-50"
+            >
+              <Flag className="w-4 h-4 mr-2" />
+              Goals
+            </Button>
+            <Button
+              onClick={() => navigate(createPageUrl('NutritionCoach'))}
+              className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI Coach
+            </Button>
+          </div>
         </div>
 
         {/* Timeframe Selector */}

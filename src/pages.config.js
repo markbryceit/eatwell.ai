@@ -13,6 +13,7 @@ import Onboarding from './pages/Onboarding';
 import Progress from './pages/Progress';
 import Recipes from './pages/Recipes';
 import NutritionInsights from './pages/NutritionInsights';
+import Goals from './pages/Goals';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "Progress": Progress,
     "Recipes": Recipes,
     "NutritionInsights": NutritionInsights,
+    "Goals": Goals,
 }
 
 export const pagesConfig = {

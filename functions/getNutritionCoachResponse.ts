@@ -17,12 +17,13 @@ Deno.serve(async (req) => {
     }
 
     // Fetch user's data for context
-    const [profile, foodLogs, fastingLogs, calorieLogs, recipes] = await Promise.all([
+    const [profile, foodLogs, fastingLogs, calorieLogs, recipes, goals] = await Promise.all([
       base44.entities.UserProfile.filter({ created_by: user.email }).then(p => p[0]),
       base44.entities.FoodLog.filter({ created_by: user.email }),
       base44.entities.FastingLog.filter({ created_by: user.email }),
       base44.entities.CalorieLog.filter({ created_by: user.email }),
-      base44.asServiceRole.entities.Recipe.list()
+      base44.asServiceRole.entities.Recipe.list(),
+      base44.entities.Goal.filter({ created_by: user.email, status: 'active' })
     ]);
 
     // Get recent logs (last 7 days)
@@ -100,15 +101,26 @@ ${deficiencies.length > 0 ? `\n⚠️ POTENTIAL DEFICIENCIES: ${deficiencies.joi
 
 AVAILABLE RECIPES: ${recipes.length} recipes available in the system covering breakfast, lunch, dinner, and snacks.
 
+ACTIVE GOALS:
+${goals.length > 0 ? goals.map(g => {
+  const progress = g.start_value && g.target_value 
+    ? Math.round(((g.current_value - g.start_value) / (g.target_value - g.start_value)) * 100)
+    : 0;
+  return `- ${g.title} (${g.category.replace('_', ' ')}): ${g.current_value}/${g.target_value} ${g.unit} (${progress}% complete)
+  ${g.description ? `  Description: ${g.description}` : ''}
+  ${g.notes ? `  Notes: ${g.notes}` : ''}`;
+}).join('\n') : 'No active goals set'}
+
 INSTRUCTIONS:
-1. Provide personalized dietary advice based on the user's goals, current stats, and recent activity
-2. Address any identified deficiencies with specific, actionable recommendations
-3. Suggest specific recipes from the database when relevant (mention recipe names)
-4. Give actionable tips for achieving their health goals
-5. Analyze patterns in their eating habits and suggest improvements
-6. Be encouraging and motivational but also honest about areas needing improvement
-7. Keep responses concise but informative
-8. When discussing macros, explain WHY they're important for the user's specific goal
+1. Provide personalized dietary advice based on the user's ACTIVE GOALS, profile, current stats, and recent activity
+2. PRIORITIZE guidance that helps achieve their specific goals (reference them by name)
+3. Address any identified deficiencies with specific, actionable recommendations
+4. Suggest specific recipes from the database when relevant (mention recipe names)
+5. Give actionable tips and track progress toward their stated goals
+6. Analyze patterns in their eating habits and suggest improvements aligned with goals
+7. Be encouraging and motivational but also honest about areas needing improvement
+8. When discussing macros, explain WHY they're important for the user's specific goals
+9. If they're off-track from their goals, provide supportive guidance to get back on track
 
 User's Question: ${message}`;
 

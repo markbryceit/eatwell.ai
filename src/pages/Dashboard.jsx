@@ -565,6 +565,15 @@ export default function Dashboard() {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => navigate(createPageUrl('Goals'))}
+              className="rounded-xl border-amber-200 text-amber-600 hover:bg-amber-50"
+            >
+              <Target className="w-4 h-4 mr-1" />
+              Goals
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => navigate(createPageUrl('Discover'))}
               className="rounded-xl border-violet-200 text-violet-600 hover:bg-violet-50"
             >
