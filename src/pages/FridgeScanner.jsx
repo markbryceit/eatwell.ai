@@ -5,7 +5,8 @@ import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Camera, Upload, Loader2, Sparkles, CheckCircle2, ChefHat } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ArrowLeft, Camera, Upload, Loader2, Sparkles, CheckCircle2, ChefHat, X, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import RecipeCard from '@/components/recipes/RecipeCard';
 import RecipeModal from '@/components/recipes/RecipeModal';
@@ -20,6 +21,7 @@ export default function FridgeScanner() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState(null);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [newIngredient, setNewIngredient] = useState('');
   const fileInputRef = useRef(null);
 
   const { data: favorites } = useQuery({
@@ -80,6 +82,99 @@ export default function FridgeScanner() {
     }
     setIsAnalyzing(false);
   };
+
+  const removeIngredient = (ingredient) => {
+    const updatedIngredients = results.ingredients.filter(i => i !== ingredient);
+    const updatedCategories = { ...results.categories };
+    
+    // Remove from categories
+    Object.keys(updatedCategories).forEach(cat => {
+      updatedCategories[cat] = updatedCategories[cat].filter(i => i !== ingredient);
+    });
+
+    // Recalculate recipe suggestions
+    const updatedSuggestions = calculateRecipeSuggestions(updatedIngredients);
+    
+    setResults({
+      ...results,
+      ingredients: updatedIngredients,
+      categories: updatedCategories,
+      suggestedRecipes: updatedSuggestions
+    });
+  };
+
+  const addIngredient = () => {
+    if (!newIngredient.trim() || !results) return;
+    
+    const ingredient = newIngredient.trim();
+    if (results.ingredients.includes(ingredient)) {
+      toast.error('Ingredient already in list');
+      return;
+    }
+
+    const updatedIngredients = [...results.ingredients, ingredient];
+    const updatedCategories = { ...results.categories };
+    
+    // Add to 'other' category
+    if (!updatedCategories.other) {
+      updatedCategories.other = [];
+    }
+    updatedCategories.other.push(ingredient);
+
+    // Recalculate recipe suggestions
+    const updatedSuggestions = calculateRecipeSuggestions(updatedIngredients);
+    
+    setResults({
+      ...results,
+      ingredients: updatedIngredients,
+      categories: updatedCategories,
+      suggestedRecipes: updatedSuggestions
+    });
+    
+    setNewIngredient('');
+    toast.success('Ingredient added');
+  };
+
+  const calculateRecipeSuggestions = (availableIngredients) => {
+    // Get all recipes
+    const allRecipes = queryClient.getQueryData(['recipes']) || [];
+    
+    // Calculate matches
+    const matches = allRecipes.map(recipe => {
+      const recipeIngredients = recipe.ingredients || [];
+      const matched = recipeIngredients.filter(ing => 
+        availableIngredients.some(avail => 
+          ing.toLowerCase().includes(avail.toLowerCase()) || 
+          avail.toLowerCase().includes(ing.toLowerCase())
+        )
+      );
+      
+      const matchPercentage = recipeIngredients.length > 0 
+        ? Math.round((matched.length / recipeIngredients.length) * 100) 
+        : 0;
+      
+      return {
+        recipe,
+        matchedIngredients: matched.length,
+        totalIngredients: recipeIngredients.length,
+        matchPercentage,
+        missingIngredients: recipeIngredients.filter(ing => !matched.includes(ing))
+      };
+    });
+
+    // Filter and sort
+    return matches
+      .filter(m => m.matchPercentage >= 30)
+      .sort((a, b) => b.matchPercentage - a.matchPercentage)
+      .slice(0, 10);
+  };
+
+  // Fetch recipes for suggestions
+  useQuery({
+    queryKey: ['recipes'],
+    queryFn: () => base44.entities.Recipe.list(),
+    staleTime: 10 * 60 * 1000
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
@@ -198,7 +293,7 @@ export default function FridgeScanner() {
                       Detected Ingredients ({results.ingredients.length})
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
                     <div className="space-y-4">
                       {Object.entries(results.categories).map(([category, items]) => (
                         items.length > 0 && (
@@ -208,14 +303,40 @@ export default function FridgeScanner() {
                             </h4>
                             <div className="flex flex-wrap gap-2">
                               {items.map((item, idx) => (
-                                <Badge key={idx} variant="secondary" className="bg-emerald-50 text-emerald-700">
+                                <Badge 
+                                  key={idx} 
+                                  variant="secondary" 
+                                  className="bg-emerald-50 text-emerald-700 cursor-pointer hover:bg-red-50 hover:text-red-700 transition-colors group pr-1"
+                                  onClick={() => removeIngredient(item)}
+                                >
                                   {item}
+                                  <X className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </Badge>
                               ))}
                             </div>
                           </div>
                         )
                       ))}
+                    </div>
+                    
+                    {/* Add ingredient input */}
+                    <div className="pt-2 border-t border-slate-200">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add ingredient..."
+                          value={newIngredient}
+                          onChange={(e) => setNewIngredient(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addIngredient()}
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={addIngredient}
+                          size="sm"
+                          className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
