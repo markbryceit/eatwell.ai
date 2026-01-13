@@ -29,7 +29,16 @@ CRITICAL INSTRUCTIONS FOR CONSISTENCY:
 - Your estimates should be within ±1% if the same photo is analyzed multiple times
 
 Person's Profile:
-${profile ? `Gender: ${profile.gender}, Height: ${profile.height_cm}cm, Current Weight: ${profile.weight_kg}kg` : 'No profile data available'}
+${profile ? `
+- Gender: ${profile.gender}
+- Height: ${profile.height_cm}cm
+- Current Weight: ${profile.weight_kg}kg
+- Age: ${profile.age} years
+- Activity Level: ${profile.activity_level}
+- Health Goal: ${profile.health_goal}
+${profile.eating_style?.length ? `- Eating Style: ${profile.eating_style.join(', ')}` : ''}
+${profile.allergies?.length ? `- Allergies: ${profile.allergies.join(', ')}` : ''}
+` : 'No profile data available'}
 
 Estimate the following:
 1. Body fat percentage - Use these visual cues systematically:
