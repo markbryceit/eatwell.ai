@@ -440,7 +440,7 @@ export default function Dashboard() {
         />
       )}
 
-      <div className="max-w-6xl mx-auto px-4 py-8 overflow-x-hidden">
+      <div className="max-w-6xl mx-auto px-4 py-8 w-full overflow-x-hidden box-border">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 w-full">
           <div>
@@ -562,9 +562,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6 w-full">
+        <div className="grid lg:grid-cols-3 gap-6 w-full max-w-full">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 min-w-0">
             {/* Week Navigation */}
             <Card className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border-0 p-4">
               <div className="flex items-center justify-between mb-4">
@@ -674,7 +674,7 @@ export default function Dashboard() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-6 min-w-0">
             {/* Calorie Progress */}
             <CalorieProgress
               dailyTarget={profile?.daily_calorie_target || 2000}
