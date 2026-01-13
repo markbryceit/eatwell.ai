@@ -5,16 +5,18 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, TrendingDown, TrendingUp, Award } from 'lucide-react';
+import { ArrowLeft, Plus, TrendingDown, TrendingUp, Award, Camera, Ruler } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { format, subDays, parseISO } from 'date-fns';
 import WeightEntryModal from '@/components/progress/WeightEntryModal';
 import ExerciseEntryModal from '@/components/progress/ExerciseEntryModal';
+import BodyMeasurementModal from '@/components/progress/BodyMeasurementModal';
 
 export default function Progress() {
   const queryClient = useQueryClient();
   const [showWeightEntry, setShowWeightEntry] = useState(false);
   const [showExerciseEntry, setShowExerciseEntry] = useState(false);
+  const [showBodyMeasurement, setShowBodyMeasurement] = useState(false);
 
   const { data: weightLogs } = useQuery({
     queryKey: ['weightLogs'],
@@ -52,7 +54,17 @@ export default function Progress() {
     staleTime: 5 * 60 * 1000
   });
 
+  const { data: bodyMeasurements } = useQuery({
+    queryKey: ['bodyMeasurements'],
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.BodyMeasurement.filter({ created_by: currentUser.email }, '-date');
+    },
+    staleTime: 1 * 60 * 1000
+  });
+
   const profile = profiles?.[0];
+  const latestBodyMeasurement = bodyMeasurements?.[0];
 
   // Weight progress calculations
   const latestWeight = weightLogs?.[0]?.weight_kg;
@@ -89,6 +101,15 @@ export default function Progress() {
         onClose={() => setShowExerciseEntry(false)}
       />
 
+      <BodyMeasurementModal
+        isOpen={showBodyMeasurement}
+        onClose={() => setShowBodyMeasurement(false)}
+        onSaved={() => {
+          queryClient.invalidateQueries({ queryKey: ['bodyMeasurements'] });
+          setShowBodyMeasurement(false);
+        }}
+      />
+
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -103,6 +124,14 @@ export default function Progress() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowBodyMeasurement(true)}
+              className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
+            >
+              <Camera className="w-4 h-4 mr-2" />
+              Body Scan
+            </Button>
             <Button
               variant="outline"
               onClick={() => setShowExerciseEntry(true)}
@@ -122,7 +151,7 @@ export default function Progress() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-white rounded-2xl shadow-sm border-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-slate-500">Current Weight</CardTitle>
@@ -163,6 +192,22 @@ export default function Progress() {
                 {exerciseLogs?.slice(0, 7).reduce((sum, log) => sum + log.duration_mins, 0) || 0} min
               </div>
               <p className="text-sm text-slate-500 mt-2">Exercise time</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl shadow-sm border-0 text-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-blue-100">Body Fat</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {latestBodyMeasurement?.body_fat_percentage ? `${latestBodyMeasurement.body_fat_percentage.toFixed(1)}%` : 'No data'}
+              </div>
+              {latestBodyMeasurement && (
+                <p className="text-sm text-blue-100 mt-2">
+                  {format(parseISO(latestBodyMeasurement.date), 'MMM d, yyyy')}
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -210,7 +255,7 @@ export default function Progress() {
 
         {/* Exercise Chart */}
         {exerciseChartData.length > 0 && (
-          <Card className="bg-white rounded-2xl shadow-sm border-0">
+          <Card className="bg-white rounded-2xl shadow-sm border-0 mb-6">
             <CardHeader>
               <CardTitle>Exercise Activity (Last 7 Days)</CardTitle>
             </CardHeader>
@@ -224,6 +269,58 @@ export default function Progress() {
                   <Bar dataKey="duration" fill="#8b5cf6" name="Minutes" />
                 </BarChart>
               </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Body Measurements History */}
+        {bodyMeasurements && bodyMeasurements.length > 0 && (
+          <Card className="bg-white rounded-2xl shadow-sm border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Ruler className="w-5 h-5 text-blue-600" />
+                Body Measurements History
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {bodyMeasurements.slice(0, 10).map((measurement) => (
+                  <div key={measurement.id} className="flex gap-4 p-4 bg-slate-50 rounded-xl">
+                    <img
+                      src={measurement.photo_url}
+                      alt="Body measurement"
+                      className="w-20 h-20 rounded-lg object-cover"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-semibold text-slate-900">
+                          {format(parseISO(measurement.date), 'MMM d, yyyy')}
+                        </p>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {measurement.body_fat_percentage.toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <span className="text-slate-500">Chest:</span>{' '}
+                          <span className="font-medium">{measurement.measurements?.chest_inches?.toFixed(1)}"</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Waist:</span>{' '}
+                          <span className="font-medium">{measurement.measurements?.waist_inches?.toFixed(1)}"</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Hips:</span>{' '}
+                          <span className="font-medium">{measurement.measurements?.hips_inches?.toFixed(1)}"</span>
+                        </div>
+                      </div>
+                      {measurement.notes && (
+                        <p className="text-sm text-slate-500 mt-2">{measurement.notes}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}

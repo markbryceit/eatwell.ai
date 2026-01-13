@@ -4,6 +4,7 @@ import Community from './pages/Community';
 import Dashboard from './pages/Dashboard';
 import DiningOut from './pages/DiningOut';
 import Discover from './pages/Discover';
+import FridgeScanner from './pages/FridgeScanner';
 import Home from './pages/Home';
 import Learn from './pages/Learn';
 import MealPlanner from './pages/MealPlanner';
@@ -11,7 +12,6 @@ import NutritionCoach from './pages/NutritionCoach';
 import Onboarding from './pages/Onboarding';
 import Progress from './pages/Progress';
 import Recipes from './pages/Recipes';
-import FridgeScanner from './pages/FridgeScanner';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +22,7 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "DiningOut": DiningOut,
     "Discover": Discover,
+    "FridgeScanner": FridgeScanner,
     "Home": Home,
     "Learn": Learn,
     "MealPlanner": MealPlanner,
@@ -29,7 +30,6 @@ export const PAGES = {
     "Onboarding": Onboarding,
     "Progress": Progress,
     "Recipes": Recipes,
-    "FridgeScanner": FridgeScanner,
 }
 
 export const pagesConfig = {
