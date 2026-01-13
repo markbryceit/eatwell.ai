@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfWeek, addDays, differenceInDays, parseISO, addWeeks, isSameWeek } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload, Sparkles, GraduationCap, Users, TrendingUp, UtensilsCrossed, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload, Sparkles, GraduationCap, Users, TrendingUp, UtensilsCrossed, Plus, ChevronLeft, ChevronRight, Camera } from "lucide-react";
 import DaySelector from '@/components/dashboard/DaySelector';
 import MealPlanCard from '@/components/dashboard/MealPlanCard';
 import CalorieProgress from '@/components/dashboard/CalorieProgress';
