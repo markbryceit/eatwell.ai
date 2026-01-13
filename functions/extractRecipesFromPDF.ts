@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     }
 
     // Extract recipe data from PDF using AI
-    const extractionResult = await base44.integrations.Core.ExtractDataFromUploadedFile({
+    const extractionResult = await base44.asServiceRole.integrations.Core.ExtractDataFromUploadedFile({
       file_url,
       json_schema: {
         type: "object",
