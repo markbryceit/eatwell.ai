@@ -106,25 +106,25 @@ export default function BodyMeasurementModal({ isOpen, onClose, onSaved }) {
           onClick={(e) => e.stopPropagation()}
           className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         >
-          <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 rounded-t-3xl flex items-center justify-between z-10">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                <Camera className="w-5 h-5 text-blue-600" />
+          <div className="sticky top-0 bg-white border-b border-slate-100 px-4 sm:px-6 py-4 rounded-t-3xl flex items-center justify-between z-10">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-slate-900">Body Measurement</h2>
-                <p className="text-sm text-slate-500">AI-powered body analysis</p>
+              <div className="min-w-0">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 truncate">Body Measurement</h2>
+                <p className="text-xs sm:text-sm text-slate-500 hidden sm:block">AI-powered body analysis</p>
               </div>
             </div>
             <button
               onClick={handleClose}
-              className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors flex-shrink-0"
             >
               <X className="w-5 h-5 text-slate-400" />
             </button>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Date */}
             <div>
               <Label htmlFor="date">Date</Label>
@@ -144,7 +144,6 @@ export default function BodyMeasurementModal({ isOpen, onClose, onSaved }) {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 onChange={handleImageSelect}
                 className="hidden"
               />
@@ -212,21 +211,21 @@ export default function BodyMeasurementModal({ isOpen, onClose, onSaved }) {
                 className="space-y-4"
               >
                 {/* Body Fat Percentage */}
-                <div className="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-6 text-white">
-                  <div className="flex items-center gap-3 mb-2">
-                    <TrendingDown className="w-6 h-6" />
-                    <h3 className="text-lg font-semibold">Body Fat Percentage</h3>
+                <div className="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 sm:p-6 text-white">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                    <TrendingDown className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <h3 className="text-base sm:text-lg font-semibold">Body Fat Percentage</h3>
                   </div>
-                  <p className="text-4xl font-bold">{analysis.body_fat_percentage.toFixed(1)}%</p>
+                  <p className="text-3xl sm:text-4xl font-bold">{analysis.body_fat_percentage.toFixed(1)}%</p>
                 </div>
 
                 {/* Measurements */}
-                <div className="bg-slate-50 rounded-2xl p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Ruler className="w-5 h-5 text-slate-600" />
-                    <h3 className="font-semibold text-slate-900">Body Measurements</h3>
+                <div className="bg-slate-50 rounded-2xl p-4 sm:p-6">
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                    <Ruler className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
+                    <h3 className="text-sm sm:text-base font-semibold text-slate-900">Body Measurements</h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     {Object.entries(analysis.measurements).map(([key, value]) => (
                       <div key={key} className="bg-white rounded-xl p-3">
                         <p className="text-xs text-slate-500 capitalize mb-1">
