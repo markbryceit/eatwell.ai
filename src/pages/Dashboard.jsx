@@ -159,6 +159,10 @@ export default function Dashboard() {
       const existingLogs = calorieLogs?.filter(l => l.date === dateStr) || [];
       const existingLog = existingLogs[0];
 
+      // Check if meal is currently completed
+      const currentlyCompleted = existingLog?.meals_logged?.find(m => m.meal_type === mealType)?.completed || false;
+      const willBeCompleted = !currentlyCompleted;
+
       if (existingLog) {
         const meals = existingLog.meals_logged || [];
         const mealIndex = meals.findIndex(m => m.meal_type === mealType);
@@ -195,8 +199,40 @@ export default function Dashboard() {
           calorie_target: profile?.daily_calorie_target || 2000
         });
       }
+
+      // Also create/delete FoodLog entry for macro tracking
+      if (willBeCompleted) {
+        // Meal is being marked as completed - create FoodLog entry
+        await base44.entities.FoodLog.create({
+          date: dateStr,
+          meal_type: mealType,
+          food_name: recipe.name,
+          serving_size: `${recipe.servings || 1} serving(s)`,
+          quantity: 1,
+          calories: recipe.calories,
+          protein_g: recipe.protein_g,
+          carbs_g: recipe.carbs_g,
+          fat_g: recipe.fat_g,
+          fiber_g: recipe.fiber_g || 0,
+          source: 'recipe'
+        });
+      } else {
+        // Meal is being unmarked - delete the FoodLog entry
+        const foodLogs = await base44.entities.FoodLog.filter({ 
+          date: dateStr, 
+          meal_type: mealType,
+          food_name: recipe.name,
+          source: 'recipe'
+        });
+        if (foodLogs && foodLogs.length > 0) {
+          await base44.entities.FoodLog.delete(foodLogs[0].id);
+        }
+      }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['calorieLogs'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calorieLogs'] });
+      queryClient.invalidateQueries({ queryKey: ['foodLogs'] });
+    }
   });
 
   const isMealCompleted = (dayIndex, mealType) => {
