@@ -19,24 +19,32 @@ Deno.serve(async (req) => {
     const profiles = await base44.entities.UserProfile.filter({ created_by: user.email });
     const profile = profiles[0];
 
-    const analysisPrompt = `Analyze this body photo and provide detailed body composition and measurement estimates.
+    const analysisPrompt = `You are an expert body composition analyst. Analyze this body photo and provide detailed, CONSISTENT body composition and measurement estimates.
 
-Based on the photo, estimate:
-1. Body fat percentage (as a number, e.g., 18.5 for 18.5%)
-2. Body measurements in inches for:
-   - Chest circumference
-   - Waist circumference
-   - Hip circumference
-   - Thigh circumference (one leg)
-   - Upper arm circumference (one arm)
-   - Neck circumference
+CRITICAL INSTRUCTIONS FOR CONSISTENCY:
+- Use a systematic, reproducible methodology for every analysis
+- Base body fat percentage primarily on visible muscle definition and fat distribution patterns
+- Consider anthropometric proportions relative to the person's height and weight
+- Use the Navy Method formula as a cross-reference for validation
+- Your estimates should be within ±1% if the same photo is analyzed multiple times
 
-Context about the person:
+Person's Profile:
 ${profile ? `Gender: ${profile.gender}, Height: ${profile.height_cm}cm, Current Weight: ${profile.weight_kg}kg` : 'No profile data available'}
+
+Estimate the following:
+1. Body fat percentage - Use these visual cues systematically:
+   - Muscle definition visibility (abs, striations, vascularity)
+   - Fat accumulation areas (waist, hips, thighs, arms, face)
+   - Overall body shape and proportion
+   ${profile?.gender === 'male' ? '- For males: 6-13% (athletic), 14-17% (fit), 18-24% (average), 25%+ (above average)' : ''}
+   ${profile?.gender === 'female' ? '- For females: 14-20% (athletic), 21-24% (fit), 25-31% (average), 32%+ (above average)' : ''}
+
+2. Body measurements in inches (use proportions relative to height):
+   - Chest, waist, hips, thighs, arms, neck circumferences
 
 Return ONLY a JSON object with this exact structure:
 {
-  "body_fat_percentage": <number>,
+  "body_fat_percentage": <number with 1 decimal place>,
   "measurements": {
     "chest_inches": <number>,
     "waist_inches": <number>,
@@ -45,10 +53,10 @@ Return ONLY a JSON object with this exact structure:
     "arms_inches": <number>,
     "neck_inches": <number>
   },
-  "analysis_notes": "Brief observations about body composition and posture"
+  "analysis_notes": "Brief, objective observations about body composition, muscle definition, and fat distribution"
 }
 
-Be as accurate as possible based on visual cues. If certain measurements are not clearly visible, make reasonable estimates based on proportions.`;
+IMPORTANT: Be consistent and systematic. The same photo should produce nearly identical results.`;
 
     const analysis = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: analysisPrompt,
