@@ -9,13 +9,15 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import DietaryPreferences from '@/components/settings/DietaryPreferences';
 
 export default function AccountSettings() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [fullName, setFullName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -26,10 +28,24 @@ export default function AccountSettings() {
       } catch (error) {
         console.log('Error fetching user:', error);
       }
-      setIsLoading(false);
     };
     fetchUser();
   }, []);
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.UserProfile.filter({ created_by: currentUser.email }).then(p => p[0]);
+    }
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: (data) => base44.entities.UserProfile.update(profile.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+    }
+  });
 
   const handleSave = async () => {
     if (!fullName.trim()) {
@@ -131,6 +147,14 @@ export default function AccountSettings() {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Dietary Preferences */}
+          {profile && (
+            <DietaryPreferences
+              profile={profile}
+              onSave={(data) => updateProfileMutation.mutate(data)}
+            />
+          )}
 
           {/* Account Actions */}
           <Card className="bg-white rounded-2xl shadow-sm border-0">

@@ -22,9 +22,14 @@ const goals = [
   { value: "gain_muscle", label: "Build Muscle", description: "Create a calorie surplus" }
 ];
 
-const dietaryOptions = [
-  "Vegetarian", "Vegan", "Gluten-Free", "Dairy-Free", 
-  "Low-Carb", "Keto", "Paleo", "Nut-Free", "No Restrictions"
+const eatingStyles = [
+  "Low Carb", "High Protein", "Keto", "Vegan", "Vegetarian", 
+  "Paleo", "Mediterranean", "Pescatarian", "Flexitarian", "No Preference"
+];
+
+const commonAllergies = [
+  "Gluten", "Dairy", "Shellfish", "Nuts", "Peanuts", 
+  "Eggs", "Soy", "Fish"
 ];
 
 export default function OnboardingFlow({ onComplete, isLoading }) {
@@ -36,15 +41,19 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
     weight_kg: "",
     activity_level: "moderate",
     health_goal: "maintain",
-    dietary_preferences: []
+    eating_style: [],
+    allergies: [],
+    disliked_foods: []
   });
+  
+  const [dislikedFoodInput, setDislikedFoodInput] = useState("");
 
   const [heightUnit, setHeightUnit] = useState("cm");
   const [heightFeet, setHeightFeet] = useState("");
   const [heightInches, setHeightInches] = useState("");
   const [weightUnit, setWeightUnit] = useState("kg");
 
-  const totalSteps = 4;
+  const totalSteps = 5;
 
   const handleNext = () => {
     if (step < totalSteps) {
@@ -89,18 +98,39 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
     updateField("weight_kg", kg);
   };
 
-  const toggleDietary = (option) => {
-    const current = formData.dietary_preferences;
-    if (option === "No Restrictions") {
-      updateField("dietary_preferences", current.includes(option) ? [] : ["No Restrictions"]);
+  const toggleEatingStyle = (style) => {
+    const current = formData.eating_style;
+    if (style === "No Preference") {
+      updateField("eating_style", current.includes(style) ? [] : ["No Preference"]);
     } else {
-      const filtered = current.filter(p => p !== "No Restrictions");
-      if (filtered.includes(option)) {
-        updateField("dietary_preferences", filtered.filter(p => p !== option));
+      const filtered = current.filter(s => s !== "No Preference");
+      if (filtered.includes(style)) {
+        updateField("eating_style", filtered.filter(s => s !== style));
       } else {
-        updateField("dietary_preferences", [...filtered, option]);
+        updateField("eating_style", [...filtered, style]);
       }
     }
+  };
+
+  const toggleAllergy = (allergy) => {
+    const current = formData.allergies;
+    if (current.includes(allergy)) {
+      updateField("allergies", current.filter(a => a !== allergy));
+    } else {
+      updateField("allergies", [...current, allergy]);
+    }
+  };
+
+  const addDislikedFood = () => {
+    const food = dislikedFoodInput.trim().toLowerCase();
+    if (food && !formData.disliked_foods.includes(food)) {
+      updateField("disliked_foods", [...formData.disliked_foods, food]);
+      setDislikedFoodInput("");
+    }
+  };
+
+  const removeDislikedFood = (food) => {
+    updateField("disliked_foods", formData.disliked_foods.filter(f => f !== food));
   };
 
   const canProceed = () => {
@@ -133,7 +163,7 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
           <div className="flex justify-between items-center mb-4">
             <span className="text-sm text-slate-500">Step {step} of {totalSteps}</span>
             <div className="flex gap-1.5">
-              {[1, 2, 3, 4].map((s) => (
+              {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={s}
                   className={`h-1.5 w-8 rounded-full transition-colors ${
@@ -156,13 +186,15 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
                 {step === 1 && "Basic Info"}
                 {step === 2 && "Body Metrics"}
                 {step === 3 && "Lifestyle & Goals"}
-                {step === 4 && "Dietary Preferences"}
+                {step === 4 && "Eating Style"}
+                {step === 5 && "Allergies & Dislikes"}
               </h2>
               <p className="text-slate-500 text-sm">
                 {step === 1 && "Help us understand you better"}
                 {step === 2 && "For accurate calorie calculation"}
                 {step === 3 && "Customize your nutrition plan"}
-                {step === 4 && "Almost there!"}
+                {step === 4 && "How do you prefer to eat?"}
+                {step === 5 && "Help us avoid what you can't or won't eat"}
               </p>
             </div>
           </div>
@@ -351,22 +383,89 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
                 <div>
                   <Label className="text-slate-700 mb-4 block">Select all that apply</Label>
                   <div className="grid grid-cols-2 gap-3">
-                    {dietaryOptions.map((option) => (
+                    {eatingStyles.map((style) => (
                       <label
-                        key={option}
+                        key={style}
                         className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                          formData.dietary_preferences.includes(option)
+                          formData.eating_style.includes(style)
                             ? 'border-emerald-500 bg-emerald-50'
                             : 'border-slate-200 hover:border-slate-300'
                         }`}
                       >
                         <Checkbox
-                          checked={formData.dietary_preferences.includes(option)}
-                          onCheckedChange={() => toggleDietary(option)}
+                          checked={formData.eating_style.includes(style)}
+                          onCheckedChange={() => toggleEatingStyle(style)}
                         />
-                        <span className="text-sm font-medium">{option}</span>
+                        <span className="text-sm font-medium">{style}</span>
                       </label>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {step === 5 && (
+                <div className="space-y-6">
+                  {/* Allergies */}
+                  <div>
+                    <Label className="text-slate-700 mb-3 block">Food Allergies</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {commonAllergies.map((allergy) => (
+                        <label
+                          key={allergy}
+                          className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                            formData.allergies.includes(allergy)
+                              ? 'border-red-500 bg-red-50'
+                              : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <Checkbox
+                            checked={formData.allergies.includes(allergy)}
+                            onCheckedChange={() => toggleAllergy(allergy)}
+                          />
+                          <span className="text-sm font-medium">{allergy}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Dislikes */}
+                  <div>
+                    <Label className="text-slate-700 mb-3 block">Foods You Don't Like</Label>
+                    <div className="flex gap-2 mb-3">
+                      <Input
+                        placeholder="e.g., mushrooms, olives..."
+                        value={dislikedFoodInput}
+                        onChange={(e) => setDislikedFoodInput(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addDislikedFood())}
+                        className="h-12 rounded-xl"
+                      />
+                      <Button
+                        type="button"
+                        onClick={addDislikedFood}
+                        className="h-12 rounded-xl"
+                      >
+                        Add
+                      </Button>
+                    </div>
+                    {formData.disliked_foods.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {formData.disliked_foods.map((food) => (
+                          <div
+                            key={food}
+                            className="flex items-center gap-2 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm"
+                          >
+                            <span>{food}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeDislikedFood(food)}
+                              className="text-slate-400 hover:text-slate-600"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
