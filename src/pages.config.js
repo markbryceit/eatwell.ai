@@ -11,6 +11,7 @@ import NutritionCoach from './pages/NutritionCoach';
 import Onboarding from './pages/Onboarding';
 import Progress from './pages/Progress';
 import Recipes from './pages/Recipes';
+import FridgeScanner from './pages/FridgeScanner';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "Onboarding": Onboarding,
     "Progress": Progress,
     "Recipes": Recipes,
+    "FridgeScanner": FridgeScanner,
 }
 
 export const pagesConfig = {

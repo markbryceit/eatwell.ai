@@ -511,6 +511,15 @@ export default function Dashboard() {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => navigate(createPageUrl('FridgeScanner'))}
+              className="rounded-xl border-teal-200 text-teal-600 hover:bg-teal-50"
+            >
+              <Camera className="w-4 h-4 mr-1" />
+              Fridge
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => navigate(createPageUrl('Discover'))}
               className="rounded-xl border-violet-200 text-violet-600 hover:bg-violet-50"
             >
