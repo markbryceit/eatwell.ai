@@ -8,32 +8,46 @@ import { base44 } from '@/api/base44Client';
 
 const groceryServices = [
   { 
-    id: 'instacart', 
-    name: 'Instacart', 
+    id: 'tesco', 
+    name: 'Tesco', 
     logo: '🛒',
-    color: 'bg-green-500',
-    url: 'https://www.instacart.com'
+    color: 'bg-blue-600',
+    url: 'https://www.tesco.com/groceries/'
   },
   { 
-    id: 'amazon_fresh', 
-    name: 'Amazon Fresh', 
-    logo: '📦',
+    id: 'sainsburys', 
+    name: 'Sainsbury\'s', 
+    logo: '🍊',
     color: 'bg-orange-500',
-    url: 'https://www.amazon.com/alm/storefront?almBrandId=QW1hem9uIEZyZXNo'
+    url: 'https://www.sainsburys.co.uk/shop/gb/groceries'
   },
   { 
-    id: 'walmart', 
-    name: 'Walmart Grocery', 
-    logo: '🏪',
-    color: 'bg-blue-500',
-    url: 'https://www.walmart.com/grocery'
+    id: 'asda', 
+    name: 'Asda', 
+    logo: '💚',
+    color: 'bg-green-600',
+    url: 'https://groceries.asda.com/'
   },
   { 
-    id: 'target', 
-    name: 'Target', 
+    id: 'morrisons', 
+    name: 'Morrisons', 
+    logo: '🌟',
+    color: 'bg-yellow-500',
+    url: 'https://groceries.morrisons.com/'
+  },
+  { 
+    id: 'ocado', 
+    name: 'Ocado', 
     logo: '🎯',
-    color: 'bg-red-500',
-    url: 'https://www.target.com/c/grocery/-/N-5xt1a'
+    color: 'bg-purple-600',
+    url: 'https://www.ocado.com/'
+  },
+  { 
+    id: 'waitrose', 
+    name: 'Waitrose', 
+    logo: '👑',
+    color: 'bg-emerald-700',
+    url: 'https://www.waitrose.com/'
   }
 ];
 
@@ -177,7 +191,7 @@ export default function GroceryDeliveryOptions({ shoppingList, onClose }) {
       <div>
         <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
           <ShoppingCart className="w-4 h-4" />
-          Shop at Your Favorite Store
+          UK Supermarkets - Order Online
         </h4>
         <div className="grid grid-cols-2 gap-3">
           {groceryServices.map((service) => (
@@ -195,7 +209,7 @@ export default function GroceryDeliveryOptions({ shoppingList, onClose }) {
           ))}
         </div>
         <p className="text-xs text-slate-500 mt-3 text-center">
-          Your shopping list will be copied to clipboard. Paste it in the store's search to find items quickly.
+          Your shopping list is copied to clipboard. Search for ingredients on the supermarket website and add to your basket for delivery.
         </p>
       </div>
 

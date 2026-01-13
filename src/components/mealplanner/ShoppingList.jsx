@@ -2,10 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X, Printer, Download, Truck } from 'lucide-react';
+import { X, Printer, Download, Truck, ShoppingBag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import GroceryDeliveryOptions from './GroceryDeliveryOptions';
+import MealSelector from './MealSelector';
 
 const categorizeIngredient = (ingredient) => {
     const lower = ingredient.toLowerCase();
@@ -33,27 +34,33 @@ const categorizeIngredient = (ingredient) => {
     return 'Other';
   };
 
-export default function ShoppingList({ isOpen, onClose, mealPlan, recipes }) {
+export default function ShoppingList({ isOpen, onClose, mealPlan, recipes, selectedMeals }) {
   const [checkedItems, setCheckedItems] = useState({});
-  const [activeTab, setActiveTab] = useState('list');
+  const [activeTab, setActiveTab] = useState('select');
+  const [finalSelectedMeals, setFinalSelectedMeals] = useState(selectedMeals || {});
+  const [showList, setShowList] = useState(false);
 
   const shoppingList = useMemo(() => {
-    if (!mealPlan || !recipes) return {};
+    if (!mealPlan || !recipes || !showList) return {};
 
     const ingredients = {};
 
-    mealPlan.days.forEach(day => {
+    mealPlan.days.forEach((day, dayIndex) => {
       ['breakfast', 'lunch', 'dinner', 'snack'].forEach(mealType => {
+        const key = `${dayIndex}-${mealType}`;
+        // Only include selected meals
+        if (!finalSelectedMeals[key]) return;
+
         const recipeId = day[`${mealType}_recipe_id`];
         if (recipeId) {
           const recipe = recipes.find(r => r.id === recipeId);
           if (recipe?.ingredients) {
             recipe.ingredients.forEach(ingredient => {
-              const key = ingredient.toLowerCase().trim();
-              if (ingredients[key]) {
-                ingredients[key].count++;
+              const ingKey = ingredient.toLowerCase().trim();
+              if (ingredients[ingKey]) {
+                ingredients[ingKey].count++;
               } else {
-                ingredients[key] = {
+                ingredients[ingKey] = {
                   name: ingredient,
                   count: 1,
                   category: categorizeIngredient(ingredient)
@@ -75,7 +82,13 @@ export default function ShoppingList({ isOpen, onClose, mealPlan, recipes }) {
     });
 
     return grouped;
-  }, [mealPlan, recipes]);
+  }, [mealPlan, recipes, finalSelectedMeals, showList]);
+
+  const handleGenerateList = (selections) => {
+    setFinalSelectedMeals(selections);
+    setShowList(true);
+    setActiveTab('list');
+  };
 
   const toggleItem = (ingredient) => {
     setCheckedItems(prev => ({
@@ -154,14 +167,26 @@ export default function ShoppingList({ isOpen, onClose, mealPlan, recipes }) {
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
             <TabsList className="mx-6 mt-4">
-              <TabsTrigger value="list" className="flex-1">My List</TabsTrigger>
-              <TabsTrigger value="delivery" className="flex-1 flex items-center gap-2">
+              <TabsTrigger value="select" className="flex-1 flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4" />
+                Select Meals
+              </TabsTrigger>
+              <TabsTrigger value="list" className="flex-1" disabled={!showList}>My List</TabsTrigger>
+              <TabsTrigger value="delivery" className="flex-1 flex items-center gap-2" disabled={!showList}>
                 <Truck className="w-4 h-4" />
                 Order Online
               </TabsTrigger>
             </TabsList>
 
             {/* Content */}
+            <TabsContent value="select" className="p-6 overflow-y-auto flex-1">
+              <MealSelector
+                mealPlan={mealPlan}
+                recipes={recipes}
+                onGenerateList={handleGenerateList}
+              />
+            </TabsContent>
+
             <TabsContent value="list" className="p-6 overflow-y-auto flex-1">
             {totalItems > 0 ? (
               <div className="space-y-6">
