@@ -238,7 +238,7 @@ export default function KidsMeals() {
                 recipe={recipe}
                 isFavorite={isFavorite(recipe.id)}
                 onToggleFavorite={() => toggleFavorite.mutate(recipe.id)}
-                onCardClick={() => setSelectedRecipe(recipe)}
+                onClick={() => setSelectedRecipe(recipe)}
               />
             ))}
           </div>
