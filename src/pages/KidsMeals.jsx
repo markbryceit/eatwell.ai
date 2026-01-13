@@ -263,6 +263,114 @@ export default function KidsMeals() {
           </Card>
         )}
 
+        {/* Nutrition Education for Kids */}
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-emerald-200 rounded-2xl p-6 mt-8">
+          <h3 className="text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
+            <span className="text-2xl">🎓</span>
+            Teach Your Kids About Nutrition
+          </h3>
+          <p className="text-slate-600 text-sm mb-6">
+            Simple lessons to help children understand why healthy eating matters
+          </p>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-xl p-4 border-2 border-emerald-100">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">💪</span>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Food is Energy</h4>
+                  <p className="text-sm text-slate-600">
+                    "Food is like fuel for your body - it helps you run, jump, and play all day! Healthy foods give you more energy than sweets."
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-4 border-2 border-emerald-100">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">🌈</span>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Eat the Rainbow</h4>
+                  <p className="text-sm text-slate-600">
+                    "Different colored foods give your body different vitamins. Try to eat all the colors of the rainbow each day!"
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-4 border-2 border-emerald-100">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">🦴</span>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Strong Bones & Teeth</h4>
+                  <p className="text-sm text-slate-600">
+                    "Milk, cheese, and yogurt have calcium that makes your bones and teeth super strong - just like a superhero!"
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-4 border-2 border-emerald-100">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">🧠</span>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Brain Food</h4>
+                  <p className="text-sm text-slate-600">
+                    "Fish, eggs, and nuts help your brain work better - they help you think, learn, and remember things at school!"
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-4 border-2 border-emerald-100">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">💧</span>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Water is Magic</h4>
+                  <p className="text-sm text-slate-600">
+                    "Your body is mostly water! Drinking water keeps you healthy, helps you focus, and is better than sugary drinks."
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-4 border-2 border-emerald-100">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">🍬</span>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Treats Are Sometimes Food</h4>
+                  <p className="text-sm text-slate-600">
+                    "Sweets and treats are okay sometimes, but healthy foods should be your everyday choice because they make you feel better."
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-4 border-2 border-emerald-100">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">🥕</span>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Try New Foods</h4>
+                  <p className="text-sm text-slate-600">
+                    "It's fun to be a food explorer! Sometimes you need to taste something a few times before you know if you like it."
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-4 border-2 border-emerald-100">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">🍽️</span>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Listen to Your Tummy</h4>
+                  <p className="text-sm text-slate-600">
+                    "Eat when you're hungry and stop when you're full. Your body is smart and will tell you what it needs!"
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+
         {/* Tips Section */}
         <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 rounded-2xl p-6 mt-8">
           <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
