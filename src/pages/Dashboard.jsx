@@ -13,9 +13,9 @@ import CalorieProgress from '@/components/dashboard/CalorieProgress';
 import WeeklyCheckin from '@/components/dashboard/WeeklyCheckin';
 import RecipeModal from '@/components/recipes/RecipeModal';
 import AlternativeMeals from '@/components/dashboard/AlternativeMeals';
-import UserMenu from '@/components/UserMenu';
 import FoodLogModal from '@/components/nutrition/FoodLogModal';
 import FastingTimer from '@/components/fasting/FastingTimer';
+import AppNavigation from '@/components/dashboard/AppNavigation';
 import { motion } from 'framer-motion';
 
 export default function Dashboard() {
@@ -497,118 +497,8 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap max-w-full">
-            <UserMenu />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl('NutritionInsights'))}
-              className="rounded-xl border-purple-200 text-purple-600 hover:bg-purple-50"
-            >
-              <TrendingUp className="w-4 h-4 mr-1" />
-              Insights
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl('NutritionCoach'))}
-              className="rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-            >
-              <Sparkles className="w-4 h-4 mr-1" />
-              AI Coach
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl('Learn'))}
-              className="rounded-xl border-purple-200 text-purple-600 hover:bg-purple-50"
-            >
-              <GraduationCap className="w-4 h-4 mr-1" />
-              Learn
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl('Community'))}
-              className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
-            >
-              <Users className="w-4 h-4 mr-1" />
-              Community
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl('Progress'))}
-              className="rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-            >
-              <TrendingUp className="w-4 h-4 mr-1" />
-              Progress
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl('DiningOut'))}
-              className="rounded-xl border-teal-200 text-teal-600 hover:bg-teal-50"
-            >
-              <UtensilsCrossed className="w-4 h-4 mr-1" />
-              Dining Out
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl('FridgeScanner'))}
-              className="rounded-xl border-teal-200 text-teal-600 hover:bg-teal-50"
-            >
-              <Camera className="w-4 h-4 mr-1" />
-              Fridge
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl('Goals'))}
-              className="rounded-xl border-amber-200 text-amber-600 hover:bg-amber-50"
-            >
-              <Target className="w-4 h-4 mr-1" />
-              Goals
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl('Discover'))}
-              className="rounded-xl border-violet-200 text-violet-600 hover:bg-violet-50"
-            >
-              <Sparkles className="w-4 h-4 mr-1" />
-              Discover
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl('Recipes'))}
-              className="rounded-xl"
-            >
-              <BookOpen className="w-4 h-4 mr-1" />
-              Recipes
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl('MealPlanner'))}
-              className="rounded-xl"
-            >
-              <Calendar className="w-4 h-4 mr-1" />
-              Planner
-            </Button>
-            {user?.role === 'admin' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate(createPageUrl('AdminRecipeUpload'))}
-                className="rounded-xl border-violet-200 text-violet-600 hover:bg-violet-50"
-              >
-                <Upload className="w-4 h-4 mr-1" />
-                Upload
-              </Button>
-            )}
+          <div className="flex items-center gap-2">
+            <AppNavigation user={user} />
             <Button
               size="sm"
               onClick={handleGenerateNewPlan}
@@ -620,7 +510,7 @@ export default function Dashboard() {
               ) : (
                 <RefreshCw className="w-4 h-4 mr-1" />
               )}
-              New
+              New Plan
             </Button>
           </div>
         </div>
