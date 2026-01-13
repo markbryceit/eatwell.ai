@@ -14,6 +14,7 @@ import NutritionInsights from './pages/NutritionInsights';
 import Onboarding from './pages/Onboarding';
 import Progress from './pages/Progress';
 import Recipes from './pages/Recipes';
+import KidsMeals from './pages/KidsMeals';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "Onboarding": Onboarding,
     "Progress": Progress,
     "Recipes": Recipes,
+    "KidsMeals": KidsMeals,
 }
 
 export const pagesConfig = {
