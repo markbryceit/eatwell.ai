@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
 export default function Goals() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
