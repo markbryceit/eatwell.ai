@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Loader2, Target, Ruler, Scale, Activity, Utensils } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Target, Ruler, Scale, Activity, Utensils, AlertCircle } from "lucide-react";
 
 const activityLevels = [
   { value: "sedentary", label: "Sedentary", description: "Little to no exercise" },
@@ -150,7 +150,7 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
     }
   };
 
-  const stepIcons = [Ruler, Scale, Activity, Utensils];
+  const stepIcons = [Ruler, Scale, Activity, Utensils, AlertCircle];
   const StepIcon = stepIcons[step - 1];
 
   return (
