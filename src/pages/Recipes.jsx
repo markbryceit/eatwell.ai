@@ -371,7 +371,7 @@ export default function Recipes() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 w-full">
           <div className="flex items-center gap-4">
-            <Link to={createPageUrl('Dashboard')}>
+            <Link to={createPageUrl('dashboard')}>
               <Button variant="ghost" size="icon" className="rounded-xl">
                 <ArrowLeft className="w-5 h-5" />
               </Button>

@@ -266,7 +266,7 @@ export default function NutritionInsights() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(createPageUrl('Dashboard'), { replace: true })}
+              onClick={() => navigate(createPageUrl('dashboard'), { replace: true })}
               className="rounded-xl"
             >
               <ArrowLeft className="w-5 h-5" />
