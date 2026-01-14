@@ -38,7 +38,7 @@ export default function AppNavigation({ user }) {
   }
 
   const handleNavigate = (page) => {
-    navigate(createPageUrl(page));
+    navigate(createPageUrl(page), { replace: true });
     setIsOpen(false);
   };
 

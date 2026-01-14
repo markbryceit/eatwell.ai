@@ -72,7 +72,7 @@ export default function NutritionCoach() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(createPageUrl('Dashboard'))}
+              onClick={() => navigate(createPageUrl('Dashboard'), { replace: true })}
               className="rounded-xl"
             >
               <ArrowLeft className="w-5 h-5" />
