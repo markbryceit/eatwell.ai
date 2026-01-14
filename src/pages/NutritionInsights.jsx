@@ -263,15 +263,14 @@ export default function NutritionInsights() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Link to={createPageUrl('Dashboard')}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-xl"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(createPageUrl('Dashboard'), { replace: true })}
+              className="rounded-xl"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <div>
               <h1 className="text-3xl font-bold text-slate-900">Nutrition Insights</h1>
               <p className="text-slate-500">Comprehensive analysis of your nutrition journey</p>
