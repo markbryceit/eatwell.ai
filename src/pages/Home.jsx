@@ -23,7 +23,7 @@ export default function Home() {
         const currentUser = await base44.auth.me();
         const profiles = await base44.entities.UserProfile.filter({ created_by: currentUser.email });
         if (profiles.length > 0 && profiles[0].onboarding_complete) {
-          navigate(createPageUrl('Dashboard'));
+          navigate(createPageUrl('Dashboard'), { replace: true });
           return;
         }
       }

@@ -60,7 +60,7 @@ export default function Onboarding() {
       });
       
       if (profiles.length > 0 && profiles[0].onboarding_complete) {
-        navigate(createPageUrl('Dashboard'));
+        navigate(createPageUrl('Dashboard'), { replace: true });
         return;
       }
       
@@ -112,8 +112,8 @@ export default function Onboarding() {
         await base44.entities.UserProfile.create(profileData);
       }
 
-      // Navigate to Dashboard
-      navigate(createPageUrl('Dashboard'));
+      // Navigate to Dashboard (replace history so back button doesn't return to onboarding)
+      navigate(createPageUrl('Dashboard'), { replace: true });
     } catch (error) {
       console.error('Error saving profile:', error);
       alert('Failed to save your profile. Please try again.');
