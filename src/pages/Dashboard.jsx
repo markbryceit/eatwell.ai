@@ -418,10 +418,10 @@ export default function Dashboard() {
 
   // Redirect to onboarding if there's an error or no profile
   useEffect(() => {
-    if (!profileLoading && (!profile || profileError)) {
+    if (!profileLoading && !profile) {
       navigate(createPageUrl('Onboarding'));
     }
-  }, [profile, profileLoading, profileError, navigate]);
+  }, [profile, profileLoading, navigate]);
 
   if (isLoading) {
     return (

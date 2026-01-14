@@ -112,9 +112,11 @@ export default function Onboarding() {
         await base44.entities.UserProfile.create(profileData);
       }
 
+      // Navigate to Dashboard
       navigate(createPageUrl('Dashboard'));
     } catch (error) {
       console.error('Error saving profile:', error);
+      alert('Failed to save your profile. Please try again.');
       setIsSaving(false);
     }
   };
