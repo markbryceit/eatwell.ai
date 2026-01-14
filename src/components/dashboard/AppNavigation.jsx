@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { 
-  Menu, X, TrendingUp, Sparkles, GraduationCap, Users, 
+  Menu, X, TrendingUp, Sparkles, Users, 
   UtensilsCrossed, Camera, Target, BookOpen, Calendar, Upload
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,7 +24,6 @@ export default function AppNavigation({ user }) {
     { label: 'Planner', icon: Calendar, page: 'MealPlanner', color: 'text-slate-700' },
     { label: 'Fridge Scanner', icon: Camera, page: 'FridgeScanner', color: 'text-teal-600' },
     { label: 'Dining Out', icon: UtensilsCrossed, page: 'DiningOut', color: 'text-teal-600' },
-    { label: 'Learn', icon: GraduationCap, page: 'Learn', color: 'text-purple-600' },
     { label: 'Community', icon: Users, page: 'Community', color: 'text-blue-600' },
   ];
 
