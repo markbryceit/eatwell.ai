@@ -39,10 +39,10 @@ export default function Home() {
       if (isAuth) {
         navigate(createPageUrl('Onboarding'));
       } else {
-        base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+        await base44.auth.redirectToLogin(createPageUrl('Onboarding'));
       }
     } catch (error) {
-      base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+      await base44.auth.redirectToLogin(createPageUrl('Onboarding'));
     }
   };
 
