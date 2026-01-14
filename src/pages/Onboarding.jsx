@@ -63,10 +63,15 @@ export default function Onboarding() {
         navigate(createPageUrl('Dashboard'));
         return;
       }
+      
+      // If we get here, user is authenticated but has no profile or incomplete onboarding
+      // Show the onboarding form
+      setIsLoading(false);
     } catch (error) {
       console.error('Error checking profile:', error);
+      // Even if there's an error, show the onboarding form instead of white screen
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleComplete = async (formData) => {

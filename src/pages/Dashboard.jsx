@@ -43,13 +43,14 @@ export default function Dashboard() {
   }, []);
 
   // Fetch user profile
-  const { data: profiles, isLoading: profileLoading } = useQuery({
+  const { data: profiles, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
     },
-    staleTime: 5 * 60 * 1000 // 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: false // Don't retry on error, redirect to onboarding instead
   });
 
   const profile = profiles?.[0];
@@ -415,6 +416,13 @@ export default function Dashboard() {
 
   const isLoading = profileLoading || planLoading || recipesLoading;
 
+  // Redirect to onboarding if there's an error or no profile
+  useEffect(() => {
+    if (!profileLoading && (!profile || profileError)) {
+      navigate(createPageUrl('Onboarding'));
+    }
+  }, [profile, profileLoading, profileError, navigate]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -424,7 +432,6 @@ export default function Dashboard() {
   }
 
   if (!profile) {
-    navigate(createPageUrl('Onboarding'));
     return null;
   }
 
