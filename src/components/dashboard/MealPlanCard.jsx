@@ -40,10 +40,12 @@ export default function MealPlanCard({
     >
       <Card className={`bg-white rounded-2xl shadow-sm border-0 overflow-hidden transition-all hover:shadow-md ${isCompleted ? 'ring-2 ring-emerald-500 ring-opacity-50' : ''}`}>
         {recipe.image_url && (
-          <div className="relative h-32 overflow-hidden">
+          <div className="relative h-32 overflow-hidden bg-slate-100">
             <img 
               src={recipe.image_url} 
               alt={recipe.name}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
