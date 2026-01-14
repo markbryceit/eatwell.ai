@@ -141,23 +141,27 @@ export default function ShoppingList({ isOpen, onClose, mealPlan, recipes, selec
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white rounded-3xl w-full max-w-3xl max-h-[85vh] overflow-hidden"
+          className="bg-white rounded-3xl w-full max-w-3xl max-h-[85vh] flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-slate-200">
+          <div className="flex items-center justify-between p-6 border-b border-slate-200 flex-shrink-0">
             <div>
               <h2 className="text-2xl font-bold text-slate-900">Shopping List</h2>
               <p className="text-slate-500 mt-1">
-                {checkedCount} of {totalItems} items
+                {showList ? `${checkedCount} of ${totalItems} items` : 'Select meals to shop for'}
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={handlePrint}>
-                <Printer className="w-5 h-5" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={handleDownload}>
-                <Download className="w-5 h-5" />
-              </Button>
+              {showList && (
+                <>
+                  <Button variant="outline" size="icon" onClick={handlePrint} className="rounded-xl">
+                    <Printer className="w-5 h-5" />
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={handleDownload} className="rounded-xl">
+                    <Download className="w-5 h-5" />
+                  </Button>
+                </>
+              )}
               <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
                 <X className="w-6 h-6" />
               </button>
@@ -165,21 +169,21 @@ export default function ShoppingList({ isOpen, onClose, mealPlan, recipes, selec
           </div>
 
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="mx-6 mt-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+            <TabsList className="mx-6 mt-4 flex-shrink-0">
               <TabsTrigger value="select" className="flex-1 flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4" />
                 Select Meals
               </TabsTrigger>
-              <TabsTrigger value="list" className="flex-1" disabled={!showList}>My List</TabsTrigger>
-              <TabsTrigger value="delivery" className="flex-1 flex items-center gap-2" disabled={!showList}>
+              <TabsTrigger value="list" className="flex-1">My List</TabsTrigger>
+              <TabsTrigger value="delivery" className="flex-1 flex items-center gap-2">
                 <Truck className="w-4 h-4" />
                 Order Online
               </TabsTrigger>
             </TabsList>
 
             {/* Content */}
-            <TabsContent value="select" className="p-6 overflow-y-auto flex-1">
+            <TabsContent value="select" className="px-6 py-4 overflow-y-auto flex-1 m-0">
               <MealSelector
                 mealPlan={mealPlan}
                 recipes={recipes}
@@ -187,7 +191,7 @@ export default function ShoppingList({ isOpen, onClose, mealPlan, recipes, selec
               />
             </TabsContent>
 
-            <TabsContent value="list" className="p-6 overflow-y-auto flex-1">
+            <TabsContent value="list" className="px-6 py-4 overflow-y-auto flex-1 m-0">
             {totalItems > 0 ? (
               <div className="space-y-6">
                 {Object.entries(shoppingList).map(([category, items]) => (
@@ -227,13 +231,13 @@ export default function ShoppingList({ isOpen, onClose, mealPlan, recipes, selec
                 <div className="text-6xl mb-4">🛒</div>
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">No Items Yet</h3>
                 <p className="text-slate-500">
-                  Add some recipes to your meal plan to generate a shopping list
+                  Select meals from the first tab to generate your shopping list
                 </p>
               </div>
             )}
             </TabsContent>
 
-            <TabsContent value="delivery" className="p-6 overflow-y-auto flex-1">
+            <TabsContent value="delivery" className="px-6 py-4 overflow-y-auto flex-1 m-0">
               <GroceryDeliveryOptions 
                 shoppingList={shoppingList}
                 onClose={onClose}

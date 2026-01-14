@@ -8,6 +8,14 @@ import { base44 } from '@/api/base44Client';
 
 const groceryServices = [
   { 
+    id: 'ocado', 
+    name: 'Ocado', 
+    logo: '🎯',
+    color: 'bg-purple-600',
+    url: 'https://www.ocado.com/',
+    hasAPI: true
+  },
+  { 
     id: 'tesco', 
     name: 'Tesco', 
     logo: '🛒',
@@ -36,13 +44,6 @@ const groceryServices = [
     url: 'https://groceries.morrisons.com/'
   },
   { 
-    id: 'ocado', 
-    name: 'Ocado', 
-    logo: '🎯',
-    color: 'bg-purple-600',
-    url: 'https://www.ocado.com/'
-  },
-  { 
     id: 'waitrose', 
     name: 'Waitrose', 
     logo: '👑',
@@ -54,6 +55,7 @@ const groceryServices = [
 export default function GroceryDeliveryOptions({ shoppingList, onClose }) {
   const [isEstimating, setIsEstimating] = useState(false);
   const [priceEstimate, setPriceEstimate] = useState(null);
+  const [isAddingToOcado, setIsAddingToOcado] = useState(false);
 
   const formatShoppingListText = () => {
     let text = '🛒 Shopping List\n\n';
@@ -80,7 +82,36 @@ export default function GroceryDeliveryOptions({ shoppingList, onClose }) {
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };
 
+  const handleAddToOcado = async () => {
+    setIsAddingToOcado(true);
+    try {
+      const items = Object.values(shoppingList).flat();
+      const { data } = await base44.functions.invoke('addToOcadoBasket', {
+        items: items.map(item => ({
+          name: item.name,
+          quantity: item.count
+        }))
+      });
+      
+      if (data.success && data.basketUrl) {
+        toast.success('Items added to Ocado basket!');
+        window.open(data.basketUrl, '_blank');
+      } else {
+        toast.error('Please authorize Ocado to add items automatically');
+      }
+    } catch (error) {
+      toast.error('Failed to add to Ocado. Opening website instead...');
+      handleOpenService(groceryServices.find(s => s.id === 'ocado'));
+    }
+    setIsAddingToOcado(false);
+  };
+
   const handleOpenService = (service) => {
+    if (service.id === 'ocado' && service.hasAPI) {
+      handleAddToOcado();
+      return;
+    }
+    
     toast.info(`Opening ${service.name}...`);
     window.open(service.url, '_blank');
     
@@ -198,18 +229,37 @@ export default function GroceryDeliveryOptions({ shoppingList, onClose }) {
             <button
               key={service.id}
               onClick={() => handleOpenService(service)}
-              className="p-4 rounded-xl border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-all group"
+              disabled={service.id === 'ocado' && isAddingToOcado}
+              className={`p-4 rounded-xl border-2 transition-all group relative ${
+                service.hasAPI 
+                  ? 'border-purple-300 bg-purple-50 hover:border-purple-500 hover:bg-purple-100'
+                  : 'border-slate-200 hover:border-emerald-500 hover:bg-emerald-50'
+              }`}
             >
+              {service.hasAPI && (
+                <Badge className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs">
+                  Auto-Add
+                </Badge>
+              )}
               <div className="text-3xl mb-2">{service.logo}</div>
-              <div className="font-medium text-slate-900 text-sm group-hover:text-emerald-700">
+              <div className={`font-medium text-sm ${
+                service.hasAPI ? 'text-purple-700 group-hover:text-purple-800' : 'text-slate-900 group-hover:text-emerald-700'
+              }`}>
                 {service.name}
               </div>
-              <ExternalLink className="w-3 h-3 mx-auto mt-1 text-slate-400 group-hover:text-emerald-500" />
+              {service.id === 'ocado' && isAddingToOcado ? (
+                <Loader2 className="w-3 h-3 mx-auto mt-1 animate-spin text-purple-500" />
+              ) : (
+                <ExternalLink className={`w-3 h-3 mx-auto mt-1 ${
+                  service.hasAPI ? 'text-purple-400 group-hover:text-purple-600' : 'text-slate-400 group-hover:text-emerald-500'
+                }`} />
+              )}
             </button>
           ))}
         </div>
         <p className="text-xs text-slate-500 mt-3 text-center">
-          Your shopping list is copied to clipboard. Search for ingredients on the supermarket website and add to your basket for delivery.
+          <span className="text-purple-600 font-semibold">Ocado:</span> Items automatically added to your basket. 
+          <span className="text-slate-500 ml-1">Other stores: list copied to clipboard for easy searching.</span>
         </p>
       </div>
 
