@@ -68,10 +68,12 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
         >
           {/* Header Image */}
           {recipe.image_url && (
-            <div className="relative h-64">
+            <div className="relative h-64 bg-slate-100">
               <img 
                 src={recipe.image_url} 
                 alt={recipe.name}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />

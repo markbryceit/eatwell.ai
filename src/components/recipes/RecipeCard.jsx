@@ -22,11 +22,13 @@ export default function RecipeCard({ recipe, isFavorite, onToggleFavorite, onCli
         className="bg-white rounded-2xl shadow-sm border-0 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
         onClick={onClick}
       >
-        <div className="relative h-40">
+        <div className="relative h-40 bg-slate-100">
           {recipe.image_url ? (
             <img 
               src={recipe.image_url} 
               alt={recipe.name}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover"
             />
           ) : (
