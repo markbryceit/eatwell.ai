@@ -143,6 +143,8 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
         return formData.activity_level && formData.health_goal;
       case 4:
         return true;
+      case 5:
+        return true;
       default:
         return false;
     }
