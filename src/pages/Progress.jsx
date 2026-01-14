@@ -24,7 +24,9 @@ export default function Progress() {
       const currentUser = await base44.auth.me();
       return base44.entities.WeightLog.filter({ created_by: currentUser.email }, '-date');
     },
-    staleTime: 1 * 60 * 1000
+    staleTime: 3 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const { data: exerciseLogs } = useQuery({
@@ -33,7 +35,9 @@ export default function Progress() {
       const currentUser = await base44.auth.me();
       return base44.entities.ExerciseLog.filter({ created_by: currentUser.email }, '-date');
     },
-    staleTime: 1 * 60 * 1000
+    staleTime: 3 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const { data: calorieLogs } = useQuery({
@@ -42,7 +46,9 @@ export default function Progress() {
       const currentUser = await base44.auth.me();
       return base44.entities.CalorieLog.filter({ created_by: currentUser.email }, '-date');
     },
-    staleTime: 1 * 60 * 1000
+    staleTime: 3 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const { data: profiles } = useQuery({
@@ -51,7 +57,9 @@ export default function Progress() {
       const currentUser = await base44.auth.me();
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
     },
-    staleTime: 5 * 60 * 1000
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const { data: bodyMeasurements } = useQuery({
@@ -60,7 +68,9 @@ export default function Progress() {
       const currentUser = await base44.auth.me();
       return base44.entities.BodyMeasurement.filter({ created_by: currentUser.email }, '-date');
     },
-    staleTime: 1 * 60 * 1000
+    staleTime: 3 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const profile = profiles?.[0];

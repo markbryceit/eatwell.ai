@@ -26,7 +26,9 @@ export default function MealPlanner() {
       const currentUser = await base44.auth.me();
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
     },
-    staleTime: 5 * 60 * 1000
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const profile = profiles?.[0];
@@ -38,7 +40,9 @@ export default function MealPlanner() {
       const currentUser = await base44.auth.me();
       return base44.entities.MealPlan.filter({ is_active: true, created_by: currentUser.email });
     },
-    staleTime: 2 * 60 * 1000
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const currentPlan = mealPlans?.[0];
@@ -47,7 +51,9 @@ export default function MealPlanner() {
   const { data: recipes } = useQuery({
     queryKey: ['recipes'],
     queryFn: () => base44.entities.Recipe.list(),
-    staleTime: 10 * 60 * 1000
+    staleTime: 15 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const getRecipeById = (id) => recipes?.find(r => r.id === id);

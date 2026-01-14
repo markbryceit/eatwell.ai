@@ -43,14 +43,17 @@ export default function Dashboard() {
   }, []);
 
   // Fetch user profile
-  const { data: profiles, isLoading: profileLoading, error: profileError } = useQuery({
+  const { data: profiles, isLoading: profileLoading } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false // Don't retry on error, redirect to onboarding instead
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    cacheTime: 30 * 60 * 1000, // 30 minutes
+    retry: 1,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
   });
 
   const profile = profiles?.[0];
@@ -66,7 +69,10 @@ export default function Dashboard() {
         created_by: currentUser.email 
       });
     },
-    staleTime: 2 * 60 * 1000 // 2 minutes
+    enabled: !!profile,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const currentPlan = mealPlans?.[0];
@@ -87,7 +93,9 @@ export default function Dashboard() {
       return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
     },
     enabled: !!profile,
-    staleTime: 2 * 60 * 1000
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   // Fetch calorie logs - defer until profile is loaded
@@ -98,7 +106,9 @@ export default function Dashboard() {
       return base44.entities.CalorieLog.filter({ created_by: currentUser.email });
     },
     enabled: !!profile,
-    staleTime: 1 * 60 * 1000 // 1 minute
+    staleTime: 2 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   // Fetch food logs
@@ -109,7 +119,9 @@ export default function Dashboard() {
       return base44.entities.FoodLog.filter({ created_by: currentUser.email });
     },
     enabled: !!profile,
-    staleTime: 1 * 60 * 1000
+    staleTime: 2 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   // Check if weekly checkin is needed
@@ -416,12 +428,12 @@ export default function Dashboard() {
 
   const isLoading = profileLoading || planLoading || recipesLoading;
 
-  // Redirect to onboarding if there's an error or no profile
+  // Redirect to onboarding only if definitively no profile exists after loading
   useEffect(() => {
-    if (!profileLoading && !profile) {
+    if (!profileLoading && profiles && profiles.length === 0) {
       navigate(createPageUrl('Onboarding'), { replace: true });
     }
-  }, [profile, profileLoading, navigate]);
+  }, [profiles, profileLoading, navigate]);
 
   if (isLoading) {
     return (

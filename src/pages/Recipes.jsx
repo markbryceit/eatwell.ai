@@ -64,7 +64,9 @@ export default function Recipes() {
   const { data: recipes, isLoading: recipesLoading } = useQuery({
     queryKey: ['recipes'],
     queryFn: () => base44.entities.Recipe.list(),
-    staleTime: 10 * 60 * 1000 // 10 minutes
+    staleTime: 15 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   // Fetch favorites
@@ -74,7 +76,9 @@ export default function Recipes() {
       const currentUser = await base44.auth.me();
       return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
     },
-    staleTime: 2 * 60 * 1000
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   // Fetch current meal plan
@@ -84,7 +88,9 @@ export default function Recipes() {
       const currentUser = await base44.auth.me();
       return base44.entities.MealPlan.filter({ is_active: true, created_by: currentUser.email });
     },
-    staleTime: 2 * 60 * 1000
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const currentPlan = mealPlans?.[0];
