@@ -94,7 +94,9 @@ export default function Onboarding() {
         gender: formData.gender,
         activity_level: formData.activity_level,
         health_goal: formData.health_goal,
-        dietary_preferences: formData.dietary_preferences,
+        eating_style: formData.eating_style || [],
+        allergies: formData.allergies || [],
+        disliked_foods: formData.disliked_foods || [],
         daily_calorie_target: targetCalories,
         last_checkin_date: new Date().toISOString().split('T')[0],
         onboarding_complete: true
