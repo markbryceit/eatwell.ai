@@ -14,7 +14,6 @@ export default function AppNavigation({ user }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { label: 'Insights', icon: TrendingUp, page: 'NutritionInsights', color: 'text-purple-600' },
     { label: 'AI Coach', icon: Sparkles, page: 'NutritionCoach', color: 'text-emerald-600' },
     { label: 'Progress', icon: TrendingUp, page: 'Progress', color: 'text-emerald-600' },
     { label: 'Recipes', icon: BookOpen, page: 'Recipes', color: 'text-slate-700' },
