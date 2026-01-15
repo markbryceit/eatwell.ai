@@ -359,7 +359,28 @@ export default function Discover() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow">
+                  <Card 
+                    className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => {
+                      // Convert AI suggestion to recipe format for modal
+                      const recipePreview = {
+                        id: `ai-${index}`,
+                        name: suggestion.recipe_name,
+                        description: suggestion.description,
+                        meal_type: suggestion.meal_type,
+                        calories: suggestion.estimated_calories,
+                        protein_g: suggestion.estimated_macros?.protein || 0,
+                        carbs_g: suggestion.estimated_macros?.carbs || 0,
+                        fat_g: suggestion.estimated_macros?.fat || 0,
+                        ingredients: suggestion.ingredients || [],
+                        instructions: suggestion.instructions || [],
+                        prep_time_mins: suggestion.prep_time_mins || 0,
+                        cook_time_mins: suggestion.cook_time_mins || 0,
+                        dietary_tags: suggestion.dietary_tags || []
+                      };
+                      setSelectedRecipe(recipePreview);
+                    }}
+                  >
                     <CardContent className="p-6">
                       <h3 className="font-semibold text-slate-900 mb-2">{suggestion.recipe_name}</h3>
                       <p className="text-sm text-slate-600 mb-4">{suggestion.description}</p>
