@@ -123,15 +123,22 @@ REQUIREMENTS:
 1. CRITICAL: Create a COMPLETE 7-day meal plan with breakfast, lunch, dinner, and snack for EVERY day
 2. MUST select valid recipe IDs from the available recipes above - these IDs are REQUIRED
 3. NEVER leave any meal slot empty - every day MUST have all 4 meals filled
-4. For each meal type, try to get as close as possible to the target calories
-5. Prioritize recipes the user has favorited or highly rated when available
-6. Include popular community recipes (high community_favorites and community_avg_rating)
-7. Ensure variety - don't repeat the same recipe more than twice in the week
-8. Match dietary preferences and avoid disliked ingredients
-9. If a perfect calorie match isn't available, pick the closest option and balance it across other meals
-10. Balance macros across the week (adequate protein, fiber)
-11. Mix familiar recipes (user has cooked) with new discoveries
-12. TOTAL daily calories should be within ±300 of the target by combining all 4 meals
+4. CRITICAL: ONLY select recipes from their correct meal_type category:
+   - breakfast_recipe_id MUST come from recipesByType.breakfast array
+   - lunch_recipe_id MUST come from recipesByType.lunch array
+   - dinner_recipe_id MUST come from recipesByType.dinner array
+   - snack_recipe_id MUST come from recipesByType.snack array
+   - DO NOT put desserts or cakes in breakfast slots
+   - DO NOT put breakfast items in dinner slots
+5. For each meal type, try to get as close as possible to the target calories
+6. Prioritize recipes the user has favorited or highly rated when available
+7. Include popular community recipes (high community_favorites and community_avg_rating)
+8. Ensure variety - don't repeat the same recipe more than twice in the week
+9. Match dietary preferences and avoid disliked ingredients
+10. If a perfect calorie match isn't available, pick the closest option and balance it across other meals
+11. Balance macros across the week (adequate protein, fiber)
+12. Mix familiar recipes (user has cooked) with new discoveries
+13. TOTAL daily calories should be within ±300 of the target by combining all 4 meals
 
 CRITICAL VALIDATION:
 - Each day MUST have exactly 4 recipe IDs (breakfast_recipe_id, lunch_recipe_id, dinner_recipe_id, snack_recipe_id)

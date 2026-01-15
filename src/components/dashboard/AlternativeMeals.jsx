@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles, Loader2, X, Clock, Flame, Star } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Sparkles, Loader2, X, Clock, Flame, Star, Search } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function AlternativeMeals({ 
@@ -15,6 +16,7 @@ export default function AlternativeMeals({
 }) {
   const [alternatives, setAlternatives] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchAlternatives = async () => {
     setIsLoading(true);
@@ -27,6 +29,25 @@ export default function AlternativeMeals({
       setAlternatives(response.data.recommendations || []);
     } catch (error) {
       console.error('Error fetching alternatives:', error);
+    }
+    setIsLoading(false);
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      fetchAlternatives();
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await base44.functions.invoke('smartRecipeSearch', {
+        query: searchQuery,
+        meal_type: mealType
+      });
+      setAlternatives(response.data.recipes || []);
+    } catch (error) {
+      console.error('Error searching recipes:', error);
     }
     setIsLoading(false);
   };
@@ -51,22 +72,56 @@ export default function AlternativeMeals({
           onClick={(e) => e.stopPropagation()}
           className="bg-white rounded-3xl w-full max-w-3xl max-h-[80vh] overflow-hidden"
         >
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-slate-900 flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-violet-500" />
-                Alternative {mealType.charAt(0).toUpperCase() + mealType.slice(1)} Options
-              </h2>
-              <p className="text-slate-500 text-sm mt-1">
-                AI-powered recommendations based on your preferences
-              </p>
+          <div className="p-6 border-b border-slate-100">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-semibold text-slate-900 flex items-center gap-2">
+                  <Sparkles className="w-6 h-6 text-violet-500" />
+                  Alternative {mealType.charAt(0).toUpperCase() + mealType.slice(1)} Options
+                </h2>
+                <p className="text-slate-500 text-sm mt-1">
+                  AI-powered recommendations or search for specific ingredients
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors"
-            >
-              <X className="w-5 h-5 text-slate-400" />
-            </button>
+            
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Search for ingredients like 'eggs', 'chicken', 'salmon'..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="pl-10 rounded-xl"
+                />
+              </div>
+              <Button
+                onClick={handleSearch}
+                disabled={isLoading}
+                className="bg-violet-500 hover:bg-violet-600 rounded-xl"
+              >
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
+              </Button>
+              {searchQuery && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery('');
+                    fetchAlternatives();
+                  }}
+                  className="rounded-xl"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="p-6 overflow-y-auto max-h-[calc(80vh-8rem)]">
