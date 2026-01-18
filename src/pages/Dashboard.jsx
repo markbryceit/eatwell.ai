@@ -459,8 +459,6 @@ export default function Dashboard() {
     setShowManualSelector(null);
   };
 
-  const isLoading = profileLoading || planLoading || recipesLoading;
-
   // Redirect to onboarding only if definitively no profile exists after loading
   useEffect(() => {
     if (!profileLoading && profiles && profiles.length === 0) {
@@ -468,7 +466,7 @@ export default function Dashboard() {
     }
   }, [profiles, profileLoading, navigate]);
 
-  if (isLoading) {
+  if (profileLoading || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
@@ -476,7 +474,9 @@ export default function Dashboard() {
     );
   }
 
-  if (!profile) {
+  const isLoading = planLoading || recipesLoading;
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
