@@ -13,6 +13,7 @@ import CalorieProgress from '@/components/dashboard/CalorieProgress';
 import WeeklyCheckin from '@/components/dashboard/WeeklyCheckin';
 import RecipeModal from '@/components/recipes/RecipeModal';
 import AlternativeMeals from '@/components/dashboard/AlternativeMeals';
+import ManualMealSelector from '@/components/dashboard/ManualMealSelector';
 import FoodLogModal from '@/components/nutrition/FoodLogModal';
 import FastingTimer from '@/components/fasting/FastingTimer';
 import AppNavigation from '@/components/dashboard/AppNavigation';
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showAlternatives, setShowAlternatives] = useState(null);
+  const [showManualSelector, setShowManualSelector] = useState(null);
   const [user, setUser] = useState(null);
   const [showFoodLog, setShowFoodLog] = useState(false);
 
@@ -427,6 +429,36 @@ export default function Dashboard() {
     setShowAlternatives(null);
   };
 
+  const handleManualMealChange = async (newRecipe) => {
+    if (!currentPlan || !showManualSelector) return;
+    
+    const { mealType, dayIndex } = showManualSelector;
+    const updatedDays = [...currentPlan.days];
+    updatedDays[dayIndex] = {
+      ...updatedDays[dayIndex],
+      [`${mealType}_recipe_id`]: newRecipe.id
+    };
+
+    // Recalculate total calories
+    const breakfast = getRecipeById(updatedDays[dayIndex].breakfast_recipe_id);
+    const lunch = getRecipeById(updatedDays[dayIndex].lunch_recipe_id);
+    const dinner = getRecipeById(updatedDays[dayIndex].dinner_recipe_id);
+    const snack = getRecipeById(updatedDays[dayIndex].snack_recipe_id);
+    
+    updatedDays[dayIndex].total_calories = 
+      (breakfast?.calories || 0) +
+      (lunch?.calories || 0) +
+      (dinner?.calories || 0) +
+      (snack?.calories || 0);
+
+    await base44.entities.MealPlan.update(currentPlan.id, {
+      days: updatedDays
+    });
+
+    queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
+    setShowManualSelector(null);
+  };
+
   const isLoading = profileLoading || planLoading || recipesLoading;
 
   // Redirect to onboarding only if definitively no profile exists after loading
@@ -494,6 +526,15 @@ export default function Dashboard() {
             .filter(id => id !== todayMeals?.[`${showAlternatives.mealType}_recipe_id`])}
           onSelectAlternative={handleSelectAlternative}
           onClose={() => setShowAlternatives(null)}
+        />
+      )}
+
+      {showManualSelector && (
+        <ManualMealSelector
+          isOpen={!!showManualSelector}
+          mealType={showManualSelector.mealType}
+          onSelectRecipe={handleManualMealChange}
+          onClose={() => setShowManualSelector(null)}
         />
       )}
 
@@ -615,6 +656,7 @@ export default function Dashboard() {
                         }}
                         onViewRecipe={() => recipe && setSelectedRecipe(recipe)}
                         onFindAlternatives={() => setShowAlternatives({ mealType, dayIndex: selectedDay })}
+                        onChangeMeal={() => setShowManualSelector({ mealType, dayIndex: selectedDay })}
                       />
                     );
                   })}
