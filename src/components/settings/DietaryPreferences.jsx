@@ -100,7 +100,7 @@ export default function DietaryPreferences({ profile, onSave }) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await onSave({
+      const result = await onSave({
         eating_style: eatingStyle,
         allergies: allergies,
         intolerances: intolerances,
@@ -110,11 +110,14 @@ export default function DietaryPreferences({ profile, onSave }) {
         kitchen_equipment: equipment,
         cuisine_preferences: cuisinePrefs
       });
+      await result;
       toast.success('Preferences updated successfully');
     } catch (error) {
+      console.error('Save error:', error);
       toast.error('Failed to update preferences');
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
 
   return (

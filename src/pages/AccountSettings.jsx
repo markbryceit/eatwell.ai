@@ -84,7 +84,7 @@ export default function AccountSettings() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(createPageUrl('Dashboard'), { replace: true })}
+            onClick={() => navigate(createPageUrl('Dashboard'))}
             className="rounded-xl"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -152,7 +152,10 @@ export default function AccountSettings() {
           {profile && (
             <DietaryPreferences
               profile={profile}
-              onSave={(data) => updateProfileMutation.mutate(data)}
+              onSave={async (data) => {
+                await updateProfileMutation.mutateAsync(data);
+                toast.success('Settings saved! Generate a new meal plan from the Dashboard to apply changes.');
+              }}
             />
           )}
 
