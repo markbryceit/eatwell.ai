@@ -146,6 +146,8 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
         return true;
       case 5:
         return true;
+      case 6:
+        return true;
       default:
         return false;
     }
@@ -443,7 +445,7 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
                 </div>
               )}
 
-              {step === 5 && (
+              {step === 6 && (
                 <div className="space-y-6">
                   {/* Allergies */}
                   <div>
