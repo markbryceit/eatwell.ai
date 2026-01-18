@@ -90,12 +90,41 @@ Deno.serve(async (req) => {
       }
     });
 
-    const targetPerMeal = {
-      breakfast: Math.round(calorie_target * 0.25),
-      lunch: Math.round(calorie_target * 0.35),
-      dinner: Math.round(calorie_target * 0.30),
-      snack: Math.round(calorie_target * 0.10)
-    };
+    const mealsPerDay = userProfile.meals_per_day || 3;
+    
+    // Adjust calorie distribution based on meals per day
+    let targetPerMeal = {};
+    if (mealsPerDay === 2) {
+      // 2 meals: breakfast (40%) + dinner (60%)
+      targetPerMeal = {
+        breakfast: Math.round(calorie_target * 0.40),
+        lunch: 0,
+        dinner: Math.round(calorie_target * 0.60),
+        snack: 0
+      };
+    } else if (mealsPerDay === 3) {
+      // 3 meals: breakfast (25%) + lunch (35%) + dinner (40%)
+      targetPerMeal = {
+        breakfast: Math.round(calorie_target * 0.25),
+        lunch: Math.round(calorie_target * 0.35),
+        dinner: Math.round(calorie_target * 0.40),
+        snack: 0
+      };
+    } else {
+      // 4 meals: breakfast (25%) + lunch (35%) + dinner (30%) + snack (10%)
+      targetPerMeal = {
+        breakfast: Math.round(calorie_target * 0.25),
+        lunch: Math.round(calorie_target * 0.35),
+        dinner: Math.round(calorie_target * 0.30),
+        snack: Math.round(calorie_target * 0.10)
+      };
+    }
+
+    const activeMealTypes = [];
+    if (targetPerMeal.breakfast > 0) activeMealTypes.push('breakfast');
+    if (targetPerMeal.lunch > 0) activeMealTypes.push('lunch');
+    if (targetPerMeal.dinner > 0) activeMealTypes.push('dinner');
+    if (targetPerMeal.snack > 0) activeMealTypes.push('snack');
 
     const prompt = `You are a nutrition AI creating a 7-day meal plan.
 
@@ -104,12 +133,15 @@ USER PROFILE:
 - Ingredients to avoid: ${userProfile.disliked_ingredients?.join(', ') || 'None'}
 - Health goal: ${userProfile.health_goal}
 - Daily calorie target: ${calorie_target} kcal
+- Meals per day: ${mealsPerDay}
+
+ACTIVE MEALS: ${activeMealTypes.join(', ')}
 
 CALORIE TARGETS PER MEAL:
-- Breakfast: ${targetPerMeal.breakfast} kcal
-- Lunch: ${targetPerMeal.lunch} kcal
-- Dinner: ${targetPerMeal.dinner} kcal
-- Snack: ${targetPerMeal.snack} kcal
+${targetPerMeal.breakfast > 0 ? `- Breakfast: ${targetPerMeal.breakfast} kcal` : ''}
+${targetPerMeal.lunch > 0 ? `- Lunch: ${targetPerMeal.lunch} kcal` : ''}
+${targetPerMeal.dinner > 0 ? `- Dinner: ${targetPerMeal.dinner} kcal` : ''}
+${targetPerMeal.snack > 0 ? `- Snack: ${targetPerMeal.snack} kcal` : ''}
 
 USER BEHAVIOR:
 - Favorite recipes: ${favoriteRecipes.map(r => r.name).join(', ') || 'None'}
@@ -120,9 +152,10 @@ AVAILABLE RECIPES:
 ${JSON.stringify(recipesByType, null, 2)}
 
 REQUIREMENTS:
-1. CRITICAL: Create a COMPLETE 7-day meal plan with breakfast, lunch, dinner, and snack for EVERY day
+1. CRITICAL: Create a COMPLETE 7-day meal plan for EVERY day using ONLY the active meals: ${activeMealTypes.join(', ')}
 2. MUST select valid recipe IDs from the available recipes above - these IDs are REQUIRED
-3. NEVER leave any meal slot empty - every day MUST have all 4 meals filled
+3. For inactive meals (calorie target = 0), set the recipe_id to null
+4. NEVER leave any ACTIVE meal slot empty - every active meal MUST be filled
 4. CRITICAL: ONLY select recipes from their correct meal_type category:
    - breakfast_recipe_id MUST come from recipesByType.breakfast array
    - lunch_recipe_id MUST come from recipesByType.lunch array

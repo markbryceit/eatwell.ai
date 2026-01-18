@@ -41,6 +41,7 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
     weight_kg: "",
     activity_level: "moderate",
     health_goal: "maintain",
+    meals_per_day: 3,
     eating_style: [],
     allergies: [],
     disliked_foods: []
@@ -53,7 +54,7 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
   const [heightInches, setHeightInches] = useState("");
   const [weightUnit, setWeightUnit] = useState("kg");
 
-  const totalSteps = 5;
+  const totalSteps = 6;
 
   const handleNext = () => {
     if (step < totalSteps) {
@@ -150,7 +151,7 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
     }
   };
 
-  const stepIcons = [Ruler, Scale, Activity, Utensils, AlertCircle];
+  const stepIcons = [Ruler, Scale, Activity, Target, Utensils, AlertCircle];
   const StepIcon = stepIcons[step - 1];
 
   return (
@@ -165,7 +166,7 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
           <div className="flex justify-between items-center mb-4">
             <span className="text-sm text-slate-500">Step {step} of {totalSteps}</span>
             <div className="flex gap-1.5">
-              {[1, 2, 3, 4, 5].map((s) => (
+              {[1, 2, 3, 4, 5, 6].map((s) => (
                 <div
                   key={s}
                   className={`h-1.5 w-8 rounded-full transition-colors ${
@@ -188,15 +189,17 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
                 {step === 1 && "Basic Info"}
                 {step === 2 && "Body Metrics"}
                 {step === 3 && "Lifestyle & Goals"}
-                {step === 4 && "Eating Style"}
-                {step === 5 && "Allergies & Dislikes"}
+                {step === 4 && "Meal Preferences"}
+                {step === 5 && "Eating Style"}
+                {step === 6 && "Allergies & Dislikes"}
               </h2>
               <p className="text-slate-500 text-sm">
                 {step === 1 && "Help us understand you better"}
                 {step === 2 && "For accurate calorie calculation"}
                 {step === 3 && "Customize your nutrition plan"}
-                {step === 4 && "How do you prefer to eat?"}
-                {step === 5 && "Help us avoid what you can't or won't eat"}
+                {step === 4 && "How many meals do you prefer per day?"}
+                {step === 5 && "How do you prefer to eat?"}
+                {step === 6 && "Help us avoid what you can't or won't eat"}
               </p>
             </div>
           </div>
@@ -382,6 +385,41 @@ export default function OnboardingFlow({ onComplete, isLoading }) {
               )}
 
               {step === 4 && (
+                <div>
+                  <Label className="text-slate-700 mb-4 block">How many meals per day?</Label>
+                  <div className="space-y-3">
+                    {[
+                      { value: 2, label: "2 Meals", description: "Breakfast + Dinner (Intermittent Fasting)" },
+                      { value: 3, label: "3 Meals", description: "Breakfast + Lunch + Dinner (Recommended)" },
+                      { value: 4, label: "4 Meals", description: "3 Meals + 1 Snack (Most Flexibility)" }
+                    ].map((option) => (
+                      <label
+                        key={option.value}
+                        className={`flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                          formData.meals_per_day === option.value
+                            ? 'border-emerald-500 bg-emerald-50'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="meals"
+                          value={option.value}
+                          checked={formData.meals_per_day === option.value}
+                          onChange={() => updateField("meals_per_day", option.value)}
+                          className="sr-only"
+                        />
+                        <div>
+                          <div className="font-medium text-slate-900">{option.label}</div>
+                          <div className="text-sm text-slate-500">{option.description}</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {step === 5 && (
                 <div>
                   <Label className="text-slate-700 mb-4 block">Select all that apply</Label>
                   <div className="grid grid-cols-2 gap-3">

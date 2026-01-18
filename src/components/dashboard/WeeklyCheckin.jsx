@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scale, Activity, Target, Loader2, RefreshCw } from "lucide-react";
+import { Scale, Activity, Target, Loader2, RefreshCw, X } from "lucide-react";
 
 const activityLevels = [
   { value: "sedentary", label: "Sedentary" },
@@ -21,7 +21,7 @@ const goals = [
   { value: "gain_muscle", label: "Build Muscle" }
 ];
 
-export default function WeeklyCheckin({ currentProfile, onComplete, isLoading }) {
+export default function WeeklyCheckin({ currentProfile, onComplete, isLoading, onCancel }) {
   const [formData, setFormData] = useState({
     weight_kg: currentProfile?.weight_kg || "",
     height_cm: currentProfile?.height_cm || "",
@@ -46,7 +46,15 @@ export default function WeeklyCheckin({ currentProfile, onComplete, isLoading })
       animate={{ opacity: 1, scale: 1 }}
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
     >
-      <Card className="w-full max-w-lg bg-white rounded-3xl shadow-2xl">
+      <Card className="w-full max-w-lg bg-white rounded-3xl shadow-2xl relative">
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors z-10"
+          >
+            <X className="w-5 h-5 text-slate-400" />
+          </button>
+        )}
         <CardHeader className="text-center pb-2">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
             <RefreshCw className="w-8 h-8 text-emerald-600" />

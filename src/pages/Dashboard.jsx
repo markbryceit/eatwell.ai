@@ -459,6 +459,7 @@ export default function Dashboard() {
           currentProfile={profile}
           onComplete={handleWeeklyCheckin}
           isLoading={isGenerating}
+          onCancel={() => setShowCheckin(false)}
         />
       )}
 
