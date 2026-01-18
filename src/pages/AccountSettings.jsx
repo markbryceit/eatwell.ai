@@ -84,7 +84,7 @@ export default function AccountSettings() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(createPageUrl('Dashboard'))}
+            onClick={() => window.location.href = createPageUrl('Dashboard')}
             className="rounded-xl"
           >
             <ArrowLeft className="w-5 h-5" />
