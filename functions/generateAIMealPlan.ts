@@ -66,7 +66,14 @@ Deno.serve(async (req) => {
       snack: []
     };
 
+    const dislikedRecipeIds = userProfile.disliked_recipes || [];
+
     recipes.forEach(recipe => {
+      // Skip disliked recipes
+      if (dislikedRecipeIds.includes(recipe.id)) {
+        return;
+      }
+
       if (recipesByType[recipe.meal_type]) {
         recipesByType[recipe.meal_type].push({
           id: recipe.id,
@@ -131,6 +138,7 @@ Deno.serve(async (req) => {
 USER PROFILE:
 - Dietary preferences: ${userProfile.dietary_preferences?.join(', ') || 'None'}
 - Ingredients to avoid: ${userProfile.disliked_ingredients?.join(', ') || 'None'}
+- Disliked recipe IDs: ${userProfile.disliked_recipes?.join(', ') || 'None'}
 - Health goal: ${userProfile.health_goal}
 - Daily calorie target: ${calorie_target} kcal
 - Meals per day: ${mealsPerDay}
@@ -168,7 +176,8 @@ REQUIREMENTS:
 7. Include popular community recipes (high community_favorites and community_avg_rating)
 8. Ensure variety - don't repeat the same recipe more than twice in the week
 9. Match dietary preferences and avoid disliked ingredients
-10. If a perfect calorie match isn't available, pick the closest option and balance it across other meals
+10. NEVER recommend any recipe from the disliked recipe IDs list
+11. If a perfect calorie match isn't available, pick the closest option and balance it across other meals
 11. Balance macros across the week (adequate protein, fiber)
 12. Mix familiar recipes (user has cooked) with new discoveries
 13. TOTAL daily calories should be within ±300 of the target by combining all 4 meals

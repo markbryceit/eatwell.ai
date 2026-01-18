@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { X, Clock, Flame, Users, Star, Check, Edit, Trash2, Sparkles, Lightbulb } from "lucide-react";
+import { X, Clock, Flame, Users, Star, Check, Edit, Trash2, Sparkles, Lightbulb, ThumbsDown } from "lucide-react";
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import RatingStars from './RatingStars';
@@ -35,11 +35,20 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
   const queryClient = useQueryClient();
   const [userRating, setUserRating] = useState(0);
   const [showSubstitutions, setShowSubstitutions] = useState(false);
+  const [isDisliked, setIsDisliked] = useState(false);
 
   const { data: ratings } = useQuery({
     queryKey: ['recipeRatings', recipe?.id],
     queryFn: () => base44.entities.RecipeRating.filter({ recipe_id: recipe?.id }),
     enabled: !!recipe?.id
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.UserProfile.filter({ created_by: currentUser.email }).then(p => p[0]);
+    }
   });
 
   useEffect(() => {
@@ -49,6 +58,12 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
       setUserRating(0);
     }
   }, [ratings]);
+
+  useEffect(() => {
+    if (profile && recipe) {
+      setIsDisliked(profile.disliked_recipes?.includes(recipe.id) || false);
+    }
+  }, [profile, recipe]);
 
   const ratingMutation = useMutation({
     mutationFn: async (newRating) => {
@@ -69,6 +84,29 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
   const handleRate = (rating) => {
     setUserRating(rating);
     ratingMutation.mutate(rating);
+  };
+
+  const toggleDislikeMutation = useMutation({
+    mutationFn: async () => {
+      if (!profile || !recipe) return;
+      
+      const currentDislikes = profile.disliked_recipes || [];
+      const newDislikes = isDisliked 
+        ? currentDislikes.filter(id => id !== recipe.id)
+        : [...currentDislikes, recipe.id];
+
+      await base44.entities.UserProfile.update(profile.id, {
+        disliked_recipes: newDislikes
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      setIsDisliked(!isDisliked);
+    }
+  });
+
+  const handleToggleDislike = () => {
+    toggleDislikeMutation.mutate();
   };
 
   if (!recipe || !isOpen) return null;
@@ -238,6 +276,15 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
               >
                 <Star className={`w-5 h-5 mr-2 ${isFavorite ? 'fill-amber-400 text-amber-400' : ''}`} />
                 {isFavorite ? 'Saved' : 'Save Recipe'}
+              </Button>
+              <Button
+                variant="outline"
+                className={`flex-1 h-12 rounded-xl ${isDisliked ? 'border-slate-900 bg-slate-50' : 'border-slate-200'}`}
+                onClick={handleToggleDislike}
+                disabled={toggleDislikeMutation.isPending}
+              >
+                <ThumbsDown className={`w-5 h-5 mr-2 ${isDisliked ? 'fill-slate-700 text-slate-700' : ''}`} />
+                {isDisliked ? 'Disliked' : 'Dislike'}
               </Button>
               <Button
                 variant="outline"
