@@ -2,11 +2,34 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { X, Clock, Flame, Users, Star, Check, Edit, Trash2, Sparkles, Lightbulb } from "lucide-react";
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import RatingStars from './RatingStars';
 import RecipeSubstitutions from './RecipeSubstitutions';
+
+const dietaryTagLabels = {
+  'GF': 'Gluten Free',
+  'DF': 'Dairy Free',
+  'V': 'Vegetarian',
+  'VG': 'Vegan',
+  'Keto': 'Ketogenic',
+  'Paleo': 'Paleo',
+  'Low Carb': 'Low Carbohydrate',
+  'High Protein': 'High Protein',
+  'Nut Free': 'Nut Free',
+  'Soy Free': 'Soy Free',
+  'Egg Free': 'Egg Free',
+  'Shellfish Free': 'Shellfish Free',
+  'Pescatarian': 'Pescatarian',
+  'Halal': 'Halal',
+  'Kosher': 'Kosher',
+  'Sugar Free': 'Sugar Free',
+  'Low Sodium': 'Low Sodium',
+  'Whole30': 'Whole30 Compliant',
+  'Mediterranean': 'Mediterranean Diet'
+};
 
 export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onToggleFavorite, onEdit, onDelete, onGenerateVariation }) {
   const queryClient = useQueryClient();
@@ -85,13 +108,22 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
               </button>
               <div className="absolute bottom-4 left-6 right-6">
                 <h2 className="text-2xl font-bold text-white mb-2">{recipe.name}</h2>
-                <div className="flex flex-wrap gap-2">
-                  {recipe.dietary_tags?.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="bg-white/20 text-white border-0">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
+                <TooltipProvider>
+                  <div className="flex flex-wrap gap-2">
+                    {recipe.dietary_tags?.map((tag) => (
+                      <Tooltip key={tag}>
+                        <TooltipTrigger asChild>
+                          <Badge variant="secondary" className="bg-white/20 text-white border-0 cursor-help">
+                            {tag}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{dietaryTagLabels[tag] || tag}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </div>
+                </TooltipProvider>
               </div>
             </div>
           )}
