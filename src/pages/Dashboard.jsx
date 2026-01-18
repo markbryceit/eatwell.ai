@@ -337,9 +337,9 @@ export default function Dashboard() {
         last_checkin_date: new Date().toISOString().split('T')[0]
       });
 
-      // Generate new meal plan
-      await generateMealPlan(targetCalories);
-      
+      // Generate new meal plan for current week
+      await generateMealPlan(targetCalories, startOfWeek(new Date(), { weekStartsOn: 1 }));
+
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
       queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
       setShowCheckin(false);
@@ -349,7 +349,7 @@ export default function Dashboard() {
     setIsGenerating(false);
   };
 
-  const generateMealPlan = async (calorieTarget) => {
+  const generateMealPlan = async (calorieTarget, weekStartDate = null) => {
     if (!recipes || recipes.length === 0) return;
 
     try {
@@ -358,7 +358,7 @@ export default function Dashboard() {
         calorie_target: calorieTarget
       });
 
-      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const weekStart = weekStartDate || startOfWeek(new Date(), { weekStartsOn: 1 });
       
       // Add dates to the AI-generated days
       const daysWithDates = data.days.map((day, i) => ({
@@ -366,22 +366,23 @@ export default function Dashboard() {
         date: format(addDays(weekStart, i), 'yyyy-MM-dd')
       }));
 
-      // Deactivate old plans for this user only
+      // Deactivate old plans for the same week
       const currentUser = await base44.auth.me();
+      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
       const oldPlans = await base44.entities.MealPlan.filter({ 
-        is_active: true, 
+        week_start_date: weekStartStr,
         created_by: currentUser.email 
       });
       for (const plan of oldPlans) {
-        await base44.entities.MealPlan.update(plan.id, { is_active: false });
+        await base44.entities.MealPlan.delete(plan.id);
       }
 
       // Create new AI-generated plan
       await base44.entities.MealPlan.create({
-        week_start_date: format(weekStart, 'yyyy-MM-dd'),
+        week_start_date: weekStartStr,
         daily_calorie_target: calorieTarget,
         days: daysWithDates,
-        is_active: true
+        is_active: isSameWeek(weekStart, new Date(), { weekStartsOn: 1 })
       });
     } catch (error) {
       console.error('Error generating AI meal plan:', error);
@@ -391,7 +392,7 @@ export default function Dashboard() {
 
   const handleGenerateNewPlan = async () => {
     setIsGenerating(true);
-    await generateMealPlan(profile?.daily_calorie_target || 2000);
+    await generateMealPlan(profile?.daily_calorie_target || 2000, selectedWeekStart);
     queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
     setIsGenerating(false);
   };
@@ -562,7 +563,6 @@ export default function Dashboard() {
                   variant="ghost"
                   size="sm"
                   onClick={handleNextWeek}
-                  disabled={isSameWeek(addWeeks(selectedWeekStart, 1), new Date(), { weekStartsOn: 1 }) || addWeeks(selectedWeekStart, 1) > new Date()}
                   className="rounded-xl"
                 >
                   Next
@@ -593,8 +593,12 @@ export default function Dashboard() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   {['breakfast', 'lunch', 'dinner', 'snack'].map((mealType) => {
                     const recipeId = todayMeals[`${mealType}_recipe_id`];
+
+                    // Skip inactive meals (null recipe IDs)
+                    if (!recipeId) return null;
+
                     const recipe = getRecipeById(recipeId);
-                    
+
                     return (
                       <MealPlanCard
                         key={mealType}

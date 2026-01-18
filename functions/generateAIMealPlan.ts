@@ -153,10 +153,10 @@ ${JSON.stringify(recipesByType, null, 2)}
 
 REQUIREMENTS:
 1. CRITICAL: Create a COMPLETE 7-day meal plan for EVERY day using ONLY the active meals: ${activeMealTypes.join(', ')}
-2. MUST select valid recipe IDs from the available recipes above - these IDs are REQUIRED
-3. For inactive meals (calorie target = 0), set the recipe_id to null
+2. MUST select valid recipe IDs from the available recipes above for ACTIVE meals only
+3. For INACTIVE meals (calorie target = 0), you MUST set the recipe_id to null
 4. NEVER leave any ACTIVE meal slot empty - every active meal MUST be filled
-4. CRITICAL: ONLY select recipes from their correct meal_type category:
+5. CRITICAL: ONLY select recipes from their correct meal_type category:
    - breakfast_recipe_id MUST come from recipesByType.breakfast array
    - lunch_recipe_id MUST come from recipesByType.lunch array
    - dinner_recipe_id MUST come from recipesByType.dinner array
@@ -174,10 +174,11 @@ REQUIREMENTS:
 13. TOTAL daily calories should be within ±300 of the target by combining all 4 meals
 
 CRITICAL VALIDATION:
-- Each day MUST have exactly 4 recipe IDs (breakfast_recipe_id, lunch_recipe_id, dinner_recipe_id, snack_recipe_id)
-- All recipe IDs MUST exist in the available recipes list above
+- Each day MUST have all 4 fields: breakfast_recipe_id, lunch_recipe_id, dinner_recipe_id, snack_recipe_id
+- ACTIVE meal recipe IDs MUST exist in the available recipes list above
+- INACTIVE meals MUST have null as their recipe_id
 - Return exactly 7 days, no more, no less
-- NO null or empty values allowed for any meal
+- NO null values for ACTIVE meals (${activeMealTypes.join(', ')})
 
 Daily calorie distribution strategy:
 - Aim for ${calorie_target} total per day
@@ -195,10 +196,10 @@ Daily calorie distribution strategy:
               type: "object",
               properties: {
                 day_name: { type: "string" },
-                breakfast_recipe_id: { type: "string" },
-                lunch_recipe_id: { type: "string" },
-                dinner_recipe_id: { type: "string" },
-                snack_recipe_id: { type: "string" }
+                breakfast_recipe_id: { type: ["string", "null"] },
+                lunch_recipe_id: { type: ["string", "null"] },
+                dinner_recipe_id: { type: ["string", "null"] },
+                snack_recipe_id: { type: ["string", "null"] }
               }
             }
           },
@@ -212,33 +213,36 @@ Daily calorie distribution strategy:
 
     // Validate and calculate total calories for each day
     const enrichedDays = response.days.map((day, index) => {
-      const breakfast = recipes.find(r => r.id === day.breakfast_recipe_id);
-      const lunch = recipes.find(r => r.id === day.lunch_recipe_id);
-      const dinner = recipes.find(r => r.id === day.dinner_recipe_id);
-      const snack = recipes.find(r => r.id === day.snack_recipe_id);
-      
-      // Fallback: if any meal is missing, select a random recipe of that type
-      const ensureMeal = (recipe, mealType, recipeId) => {
+      // Ensure inactive meals are null
+      const ensureMeal = (recipeId, mealType) => {
+        // If meal is inactive (calorie target is 0), force it to null
+        if (targetPerMeal[mealType] === 0) {
+          return null;
+        }
+        
+        // If meal is active but ID is missing or invalid, use fallback
+        const recipe = recipes.find(r => r.id === recipeId);
         if (recipe) return recipeId;
+        
         const fallbackOptions = recipesByType[mealType];
         if (fallbackOptions && fallbackOptions.length > 0) {
           const fallback = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)];
           console.warn(`Day ${index + 1}: Missing ${mealType}, using fallback ${fallback.id}`);
           return fallback.id;
         }
-        return recipeId; // Last resort, keep the original even if invalid
+        return null;
       };
 
-      const validBreakfastId = ensureMeal(breakfast, 'breakfast', day.breakfast_recipe_id);
-      const validLunchId = ensureMeal(lunch, 'lunch', day.lunch_recipe_id);
-      const validDinnerId = ensureMeal(dinner, 'dinner', day.dinner_recipe_id);
-      const validSnackId = ensureMeal(snack, 'snack', day.snack_recipe_id);
+      const validBreakfastId = ensureMeal(day.breakfast_recipe_id, 'breakfast');
+      const validLunchId = ensureMeal(day.lunch_recipe_id, 'lunch');
+      const validDinnerId = ensureMeal(day.dinner_recipe_id, 'dinner');
+      const validSnackId = ensureMeal(day.snack_recipe_id, 'snack');
 
-      // Recalculate with validated IDs
-      const validBreakfast = recipes.find(r => r.id === validBreakfastId);
-      const validLunch = recipes.find(r => r.id === validLunchId);
-      const validDinner = recipes.find(r => r.id === validDinnerId);
-      const validSnack = recipes.find(r => r.id === validSnackId);
+      // Calculate total calories only for active meals
+      const validBreakfast = validBreakfastId ? recipes.find(r => r.id === validBreakfastId) : null;
+      const validLunch = validLunchId ? recipes.find(r => r.id === validLunchId) : null;
+      const validDinner = validDinnerId ? recipes.find(r => r.id === validDinnerId) : null;
+      const validSnack = validSnackId ? recipes.find(r => r.id === validSnackId) : null;
       
       const totalCalories = 
         (validBreakfast?.calories || 0) +
