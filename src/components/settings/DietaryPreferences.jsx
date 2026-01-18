@@ -46,6 +46,21 @@ export default function DietaryPreferences({ profile, onSave }) {
   const [dislikedInput, setDislikedInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  // Update state when profile changes
+  useEffect(() => {
+    if (profile) {
+      setEatingStyle(profile.eating_style || []);
+      setAllergies(profile.allergies || []);
+      setIntolerances(profile.intolerances || []);
+      setDislikedFoods(profile.disliked_foods || []);
+      setCookingSkillLevel(profile.cooking_skill_level || 'intermediate');
+      setMaxCookingTime(profile.max_cooking_time_mins || 45);
+      setEquipment(profile.kitchen_equipment || []);
+      setCuisinePrefs(profile.cuisine_preferences || []);
+      setMealsPerDay(profile.meals_per_day || 3);
+    }
+  }, [profile]);
+
   const toggleEatingStyle = (style) => {
     if (eatingStyle.includes(style)) {
       setEatingStyle(eatingStyle.filter(s => s !== style));
