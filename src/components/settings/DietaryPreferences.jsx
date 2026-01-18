@@ -42,6 +42,7 @@ export default function DietaryPreferences({ profile, onSave }) {
   const [maxCookingTime, setMaxCookingTime] = useState(profile?.max_cooking_time_mins || 45);
   const [equipment, setEquipment] = useState(profile?.kitchen_equipment || []);
   const [cuisinePrefs, setCuisinePrefs] = useState(profile?.cuisine_preferences || []);
+  const [mealsPerDay, setMealsPerDay] = useState(profile?.meals_per_day || 3);
   const [dislikedInput, setDislikedInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -108,7 +109,8 @@ export default function DietaryPreferences({ profile, onSave }) {
         cooking_skill_level: cookingSkillLevel,
         max_cooking_time_mins: maxCookingTime,
         kitchen_equipment: equipment,
-        cuisine_preferences: cuisinePrefs
+        cuisine_preferences: cuisinePrefs,
+        meals_per_day: mealsPerDay
       });
       await result;
       toast.success('Preferences updated successfully');
@@ -252,6 +254,21 @@ export default function DietaryPreferences({ profile, onSave }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Meals Per Day */}
+          <div>
+            <Label className="text-slate-700 mb-3 block">Meals Per Day</Label>
+            <Select value={mealsPerDay.toString()} onValueChange={(val) => setMealsPerDay(parseInt(val))}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2">2 Meals - Breakfast & Dinner</SelectItem>
+                <SelectItem value="3">3 Meals - Breakfast, Lunch & Dinner</SelectItem>
+                <SelectItem value="4">4 Meals - Breakfast, Lunch, Dinner & Snack</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Cooking Skill Level */}
           <div>
             <Label className="text-slate-700 mb-3 block">Cooking Skill Level</Label>
