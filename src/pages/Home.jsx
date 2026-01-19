@@ -9,19 +9,11 @@ import CTASection from '@/components/landing/CTASection';
 import { Loader2 } from 'lucide-react';
 
 export default function Home() {
-  const [isChecking, setIsChecking] = useState(true);
+  const [isChecking, setIsChecking] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setIsChecking(false);
-    }, 3000);
-
-    checkUserStatus().finally(() => {
-      clearTimeout(timeoutId);
-    });
-
-    return () => clearTimeout(timeoutId);
+    checkUserStatus();
   }, []);
 
   const checkUserStatus = async () => {
@@ -39,8 +31,6 @@ export default function Home() {
       }
     } catch (error) {
       console.log('Error checking user status:', error);
-    } finally {
-      setIsChecking(false);
     }
   };
 
