@@ -13,15 +13,7 @@ export default function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setIsChecking(false);
-    }, 3000);
-
-    checkUserStatus().finally(() => {
-      clearTimeout(timeoutId);
-    });
-
-    return () => clearTimeout(timeoutId);
+    checkUserStatus();
   }, []);
 
   const checkUserStatus = async () => {
