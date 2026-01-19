@@ -31,8 +31,9 @@ export default function Home() {
       }
     } catch (error) {
       console.log('Error checking user status:', error);
+    } finally {
+      setIsChecking(false);
     }
-    setIsChecking(false);
   };
 
   const handleGetStarted = async () => {
