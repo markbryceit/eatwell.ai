@@ -13,38 +13,59 @@ export default function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkUserStatus();
-  }, []);
+    let mounted = true;
 
-  const checkUserStatus = async () => {
-    try {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (isAuth) {
-        const currentUser = await base44.auth.me();
-        if (currentUser) {
-          const profiles = await base44.entities.UserProfile.filter({ created_by: currentUser.email });
-          if (profiles && profiles.length > 0 && profiles[0].onboarding_complete) {
-            navigate(createPageUrl('Dashboard'), { replace: true });
-            return;
+    const checkUserStatus = async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        
+        if (!mounted) return;
+
+        if (isAuth) {
+          const currentUser = await base44.auth.me();
+          
+          if (!mounted) return;
+
+          if (currentUser?.email) {
+            const profiles = await base44.entities.UserProfile.filter({ 
+              created_by: currentUser.email 
+            });
+            
+            if (!mounted) return;
+
+            if (profiles?.length > 0 && profiles[0].onboarding_complete) {
+              navigate(createPageUrl('Dashboard'), { replace: true });
+              return;
+            }
           }
         }
+      } catch (error) {
+        console.error('Error checking user status:', error);
+      } finally {
+        if (mounted) {
+          setIsChecking(false);
+        }
       }
-    } catch (error) {
-      console.log('Error checking user status:', error);
-    } finally {
-      setIsChecking(false);
-    }
-  };
+    };
+
+    checkUserStatus();
+
+    return () => {
+      mounted = false;
+    };
+  }, [navigate]);
 
   const handleGetStarted = async () => {
     try {
       const isAuth = await base44.auth.isAuthenticated();
+      
       if (isAuth) {
         navigate(createPageUrl('Onboarding'));
       } else {
         await base44.auth.redirectToLogin(createPageUrl('Onboarding'));
       }
     } catch (error) {
+      console.error('Get started error:', error);
       await base44.auth.redirectToLogin(createPageUrl('Onboarding'));
     }
   };
