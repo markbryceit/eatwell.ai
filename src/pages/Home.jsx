@@ -14,8 +14,17 @@ export default function Home() {
 
   useEffect(() => {
     let mounted = true;
+    let timeoutId;
 
     const checkUserStatus = async () => {
+      // Force stop loading after 3 seconds no matter what
+      timeoutId = setTimeout(() => {
+        if (mounted) {
+          console.log('Auth check timeout - showing landing page');
+          setIsChecking(false);
+        }
+      }, 3000);
+
       try {
         const isAuth = await base44.auth.isAuthenticated();
         
@@ -34,6 +43,7 @@ export default function Home() {
             if (!mounted) return;
 
             if (profiles?.length > 0 && profiles[0].onboarding_complete) {
+              clearTimeout(timeoutId);
               navigate(createPageUrl('Dashboard'), { replace: true });
               return;
             }
@@ -42,6 +52,7 @@ export default function Home() {
       } catch (error) {
         console.error('Error checking user status:', error);
       } finally {
+        clearTimeout(timeoutId);
         if (mounted) {
           setIsChecking(false);
         }
@@ -52,6 +63,7 @@ export default function Home() {
 
     return () => {
       mounted = false;
+      clearTimeout(timeoutId);
     };
   }, [navigate]);
 
