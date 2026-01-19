@@ -9,11 +9,19 @@ import CTASection from '@/components/landing/CTASection';
 import { Loader2 } from 'lucide-react';
 
 export default function Home() {
-  const [isChecking, setIsChecking] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkUserStatus();
+    const timeoutId = setTimeout(() => {
+      setIsChecking(false);
+    }, 3000);
+
+    checkUserStatus().finally(() => {
+      clearTimeout(timeoutId);
+    });
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const checkUserStatus = async () => {
@@ -31,6 +39,8 @@ export default function Home() {
       }
     } catch (error) {
       console.log('Error checking user status:', error);
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -46,6 +56,14 @@ export default function Home() {
       await base44.auth.redirectToLogin(createPageUrl('Onboarding'));
     }
   };
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
