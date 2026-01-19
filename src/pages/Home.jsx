@@ -21,17 +21,18 @@ export default function Home() {
       const isAuth = await base44.auth.isAuthenticated();
       if (isAuth) {
         const currentUser = await base44.auth.me();
-        const profiles = await base44.entities.UserProfile.filter({ created_by: currentUser.email });
-        if (profiles && profiles.length > 0 && profiles[0].onboarding_complete) {
-          navigate(createPageUrl('Dashboard'), { replace: true });
-          return;
+        if (currentUser) {
+          const profiles = await base44.entities.UserProfile.filter({ created_by: currentUser.email });
+          if (profiles && profiles.length > 0 && profiles[0].onboarding_complete) {
+            navigate(createPageUrl('Dashboard'), { replace: true });
+            return;
+          }
         }
       }
     } catch (error) {
-      console.log('Not logged in, showing landing page');
-    } finally {
-      setIsChecking(false);
+      console.log('Error checking user status:', error);
     }
+    setIsChecking(false);
   };
 
   const handleGetStarted = async () => {
