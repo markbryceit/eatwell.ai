@@ -11,28 +11,7 @@ export default function Home() {
   const navigate = useNavigate();
 
   const handleGetStarted = async () => {
-    try {
-      const isAuth = await base44.auth.isAuthenticated();
-      
-      if (isAuth) {
-        // Check if user has profile
-        const user = await base44.auth.me();
-        const profiles = await base44.entities.UserProfile.filter({ 
-          created_by: user.email 
-        });
-        
-        if (profiles?.length > 0 && profiles[0].onboarding_complete) {
-          navigate(createPageUrl('Dashboard'));
-        } else {
-          navigate(createPageUrl('Onboarding'));
-        }
-      } else {
-        await base44.auth.redirectToLogin(createPageUrl('Onboarding'));
-      }
-    } catch (error) {
-      console.error('Get started error:', error);
-      await base44.auth.redirectToLogin(createPageUrl('Onboarding'));
-    }
+    await base44.auth.redirectToLogin(createPageUrl('Onboarding'));
   };
 
   return (

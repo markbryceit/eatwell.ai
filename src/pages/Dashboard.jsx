@@ -45,17 +45,21 @@ export default function Dashboard() {
   }, []);
 
   // Fetch user profile
-  const { data: profiles, isLoading: profileLoading } = useQuery({
+  const { data: profiles, isLoading: profileLoading, isError } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    cacheTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
     retry: 1,
     refetchOnMount: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    onError: (error) => {
+      console.error('Profile fetch error:', error);
+      navigate(createPageUrl('Home'), { replace: true });
+    }
   });
 
   const profile = profiles?.[0];
@@ -461,18 +465,23 @@ export default function Dashboard() {
 
   // Redirect to onboarding if no profile exists
   useEffect(() => {
-    if (!profileLoading && profiles !== undefined && profiles.length === 0) {
+    if (!profileLoading && !isError && profiles !== undefined && profiles.length === 0) {
       navigate(createPageUrl('Onboarding'), { replace: true });
     }
-  }, [profiles, profileLoading, navigate]);
+  }, [profiles, profileLoading, isError, navigate]);
 
   // Show loading only while checking for profile
-  if (profileLoading || !profile) {
+  if (profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
       </div>
     );
+  }
+
+  // If error or no profile after loading, redirect
+  if (isError || !profile) {
+    return null;
   }
 
   const todayMeals = currentPlan?.days?.[selectedDay];
