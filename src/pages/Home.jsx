@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -6,65 +6,34 @@ import HeroSection from '@/components/landing/HeroSection';
 import BenefitsSection from '@/components/landing/BenefitsSection';
 import HowItWorksSection from '@/components/landing/HowItWorksSection';
 import CTASection from '@/components/landing/CTASection';
-import { Loader2 } from 'lucide-react';
 
 export default function Home() {
-  const [isChecking, setIsChecking] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    let mounted = true;
-    let timeoutId;
-
-    const checkUserStatus = async () => {
-      // Force stop loading after 3 seconds no matter what
-      timeoutId = setTimeout(() => {
-        if (mounted) {
-          console.log('Auth check timeout - showing landing page');
-          setIsChecking(false);
-        }
-      }, 3000);
-
+    // Silent background check - doesn't block rendering
+    const silentCheck = async () => {
       try {
         const isAuth = await base44.auth.isAuthenticated();
+        if (!isAuth) return;
         
-        if (!mounted) return;
-
-        if (isAuth) {
-          const currentUser = await base44.auth.me();
-          
-          if (!mounted) return;
-
-          if (currentUser?.email) {
-            const profiles = await base44.entities.UserProfile.filter({ 
-              created_by: currentUser.email 
-            });
-            
-            if (!mounted) return;
-
-            if (profiles?.length > 0 && profiles[0].onboarding_complete) {
-              clearTimeout(timeoutId);
-              navigate(createPageUrl('Dashboard'), { replace: true });
-              return;
-            }
-          }
+        const user = await base44.auth.me();
+        if (!user?.email) return;
+        
+        const profiles = await base44.entities.UserProfile.filter({ 
+          created_by: user.email 
+        });
+        
+        if (profiles?.length > 0 && profiles[0].onboarding_complete) {
+          navigate(createPageUrl('Dashboard'), { replace: true });
         }
       } catch (error) {
-        console.error('Error checking user status:', error);
-      } finally {
-        clearTimeout(timeoutId);
-        if (mounted) {
-          setIsChecking(false);
-        }
+        // Silent fail - just show landing page
+        console.log('Silent auth check failed:', error);
       }
     };
 
-    checkUserStatus();
-
-    return () => {
-      mounted = false;
-      clearTimeout(timeoutId);
-    };
+    silentCheck();
   }, [navigate]);
 
   const handleGetStarted = async () => {
@@ -81,14 +50,6 @@ export default function Home() {
       await base44.auth.redirectToLogin(createPageUrl('Onboarding'));
     }
   };
-
-  if (isChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen">
