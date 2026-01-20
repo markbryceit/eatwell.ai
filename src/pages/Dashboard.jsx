@@ -459,20 +459,15 @@ export default function Dashboard() {
     setShowManualSelector(null);
   };
 
-  // Redirect to onboarding only if definitively no profile exists after loading
+  // Redirect to onboarding if no profile exists
   useEffect(() => {
     if (!profileLoading && profiles !== undefined && profiles.length === 0) {
       navigate(createPageUrl('Onboarding'), { replace: true });
     }
   }, [profiles, profileLoading, navigate]);
 
-  // Only show loading if we're actually loading profile or if profile doesn't exist yet
-  if (profileLoading || (profiles === undefined) || !profile) {
-    // But if profiles loaded and is empty array, don't show loading (redirect will handle it)
-    if (!profileLoading && profiles !== undefined && profiles.length === 0) {
-      return null;
-    }
-    
+  // Show loading only while checking for profile
+  if (profileLoading || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />

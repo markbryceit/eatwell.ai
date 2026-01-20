@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -10,38 +10,22 @@ import CTASection from '@/components/landing/CTASection';
 export default function Home() {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Silent background check - doesn't block rendering
-    const silentCheck = async () => {
-      try {
-        const isAuth = await base44.auth.isAuthenticated();
-        if (!isAuth) return;
-        
-        const user = await base44.auth.me();
-        if (!user?.email) return;
-        
-        const profiles = await base44.entities.UserProfile.filter({ 
-          created_by: user.email 
-        });
-        
-        if (profiles?.length > 0 && profiles[0].onboarding_complete) {
-          navigate(createPageUrl('Dashboard'), { replace: true });
-        }
-      } catch (error) {
-        // Silent fail - just show landing page
-        console.log('Silent auth check failed:', error);
-      }
-    };
-
-    silentCheck();
-  }, [navigate]);
-
   const handleGetStarted = async () => {
     try {
       const isAuth = await base44.auth.isAuthenticated();
       
       if (isAuth) {
-        navigate(createPageUrl('Onboarding'));
+        // Check if user has profile
+        const user = await base44.auth.me();
+        const profiles = await base44.entities.UserProfile.filter({ 
+          created_by: user.email 
+        });
+        
+        if (profiles?.length > 0 && profiles[0].onboarding_complete) {
+          navigate(createPageUrl('Dashboard'));
+        } else {
+          navigate(createPageUrl('Onboarding'));
+        }
       } else {
         await base44.auth.redirectToLogin(createPageUrl('Onboarding'));
       }
