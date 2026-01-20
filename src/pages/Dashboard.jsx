@@ -466,11 +466,20 @@ export default function Dashboard() {
   // Redirect to onboarding if no profile exists
   useEffect(() => {
     if (!profileLoading && !isError && profiles !== undefined && profiles.length === 0) {
+      console.log('No profile found, redirecting to Onboarding');
       navigate(createPageUrl('Onboarding'), { replace: true });
     }
   }, [profiles, profileLoading, isError, navigate]);
 
-  // Show loading only while checking for profile
+  // Redirect home if there's an error loading profile
+  useEffect(() => {
+    if (isError) {
+      console.log('Error loading profile, redirecting to Home');
+      navigate(createPageUrl('Home'), { replace: true });
+    }
+  }, [isError, navigate]);
+
+  // Show loading while checking for profile
   if (profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -479,9 +488,13 @@ export default function Dashboard() {
     );
   }
 
-  // If error or no profile after loading, redirect
-  if (isError || !profile) {
-    return null;
+  // Don't render anything if no profile (useEffect will redirect)
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
   }
 
   const todayMeals = currentPlan?.days?.[selectedDay];
