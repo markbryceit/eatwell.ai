@@ -45,7 +45,7 @@ export default function Dashboard() {
   }, []);
 
   // Fetch user profile
-  const { data: profiles, isLoading: profileLoading, isError } = useQuery({
+  const { data: profiles, isLoading: profileLoading } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
@@ -53,13 +53,7 @@ export default function Dashboard() {
     },
     staleTime: 10 * 60 * 1000,
     cacheTime: 30 * 60 * 1000,
-    retry: 1,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    onError: (error) => {
-      console.error('Profile fetch error:', error);
-      navigate(createPageUrl('Home'), { replace: true });
-    }
+    retry: 2
   });
 
   const profile = profiles?.[0];
@@ -465,31 +459,13 @@ export default function Dashboard() {
 
   // Redirect to onboarding if no profile exists
   useEffect(() => {
-    if (!profileLoading && !isError && profiles !== undefined && profiles.length === 0) {
-      console.log('No profile found, redirecting to Onboarding');
+    if (!profileLoading && profiles !== undefined && profiles.length === 0) {
       navigate(createPageUrl('Onboarding'), { replace: true });
     }
-  }, [profiles, profileLoading, isError, navigate]);
+  }, [profiles, profileLoading, navigate]);
 
-  // Redirect home if there's an error loading profile
-  useEffect(() => {
-    if (isError) {
-      console.log('Error loading profile, redirecting to Home');
-      navigate(createPageUrl('Home'), { replace: true });
-    }
-  }, [isError, navigate]);
-
-  // Show loading while checking for profile
-  if (profileLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-      </div>
-    );
-  }
-
-  // Don't render anything if no profile (useEffect will redirect)
-  if (!profile) {
+  // Show loading while profile is being fetched
+  if (profileLoading || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
