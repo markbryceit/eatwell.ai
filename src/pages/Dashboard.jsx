@@ -45,14 +45,12 @@ export default function Dashboard() {
   }, []);
 
   // Fetch user profile
-  const { data: profiles, isLoading: profileLoading } = useQuery({
+  const { data: profiles, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
     },
-    staleTime: 10 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
     retry: 2
   });
 
@@ -457,20 +455,24 @@ export default function Dashboard() {
     setShowManualSelector(null);
   };
 
-  // Redirect to onboarding if no profile exists
-  useEffect(() => {
-    if (!profileLoading && profiles !== undefined && profiles.length === 0) {
-      navigate(createPageUrl('Onboarding'), { replace: true });
-    }
-  }, [profiles, profileLoading, navigate]);
-
   // Show loading while profile is being fetched
-  if (profileLoading || !profile) {
+  if (profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
       </div>
     );
+  }
+
+  // Redirect to onboarding if no profile exists (after loading completes)
+  if (!profile && profiles !== undefined) {
+    navigate(createPageUrl('Onboarding'), { replace: true });
+    return null;
+  }
+
+  // Should not happen, but safety check
+  if (!profile) {
+    return null;
   }
 
   const todayMeals = currentPlan?.days?.[selectedDay];

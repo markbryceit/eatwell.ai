@@ -54,8 +54,18 @@ export default function Onboarding() {
         return;
       }
       
-      // Always show onboarding form - don't redirect if profile exists
-      // User might need to update their info
+      const user = await base44.auth.me();
+      const profiles = await base44.entities.UserProfile.filter({ 
+        created_by: user.email 
+      });
+      
+      // If profile exists and onboarding is complete, go to dashboard
+      if (profiles.length > 0 && profiles[0].onboarding_complete) {
+        navigate(createPageUrl('Dashboard'), { replace: true });
+        return;
+      }
+      
+      // Otherwise show onboarding form
       setIsLoading(false);
     } catch (error) {
       console.error('Error checking profile:', error);
