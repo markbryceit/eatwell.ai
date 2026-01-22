@@ -390,30 +390,34 @@ export default function Dashboard() {
   const handleManualMealChange = async (newRecipe) => {
     if (!currentPlan || !showManualSelector) return;
     
-    const { mealType, dayIndex } = showManualSelector;
-    const updatedDays = [...currentPlan.days];
-    updatedDays[dayIndex] = {
-      ...updatedDays[dayIndex],
-      [`${mealType}_recipe_id`]: newRecipe.id
-    };
+    try {
+      const { mealType, dayIndex } = showManualSelector;
+      const updatedDays = [...currentPlan.days];
+      updatedDays[dayIndex] = {
+        ...updatedDays[dayIndex],
+        [`${mealType}_recipe_id`]: newRecipe.id
+      };
 
-    const breakfast = getRecipeById(updatedDays[dayIndex].breakfast_recipe_id);
-    const lunch = getRecipeById(updatedDays[dayIndex].lunch_recipe_id);
-    const dinner = getRecipeById(updatedDays[dayIndex].dinner_recipe_id);
-    const snack = getRecipeById(updatedDays[dayIndex].snack_recipe_id);
-    
-    updatedDays[dayIndex].total_calories = 
-      (breakfast?.calories || 0) +
-      (lunch?.calories || 0) +
-      (dinner?.calories || 0) +
-      (snack?.calories || 0);
+      const breakfast = getRecipeById(updatedDays[dayIndex].breakfast_recipe_id);
+      const lunch = getRecipeById(updatedDays[dayIndex].lunch_recipe_id);
+      const dinner = getRecipeById(updatedDays[dayIndex].dinner_recipe_id);
+      const snack = getRecipeById(updatedDays[dayIndex].snack_recipe_id);
+      
+      updatedDays[dayIndex].total_calories = 
+        (breakfast?.calories || 0) +
+        (lunch?.calories || 0) +
+        (dinner?.calories || 0) +
+        (snack?.calories || 0);
 
-    await base44.entities.MealPlan.update(currentPlan.id, {
-      days: updatedDays
-    });
+      await base44.entities.MealPlan.update(currentPlan.id, {
+        days: updatedDays
+      });
 
-    queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
-    setShowManualSelector(null);
+      await queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
+      setShowManualSelector(null);
+    } catch (error) {
+      console.error('Failed to update meal:', error);
+    }
   };
 
   const todayMeals = currentPlan?.days?.[selectedDay];

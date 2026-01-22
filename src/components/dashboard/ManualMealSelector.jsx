@@ -112,9 +112,8 @@ export default function ManualMealSelector({ isOpen, onClose, mealType, onSelect
                     key={recipe.id}
                     whileHover={{ y: -2 }}
                     className="bg-white border-2 border-slate-200 rounded-2xl p-4 cursor-pointer hover:border-emerald-500 transition-all"
-                    onClick={() => {
-                      onSelectRecipe(recipe);
-                      onClose();
+                    onClick={async () => {
+                      await onSelectRecipe(recipe);
                     }}
                   >
                     <div className="flex gap-4">
