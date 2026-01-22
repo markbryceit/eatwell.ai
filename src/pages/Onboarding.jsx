@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 import { Loader2 } from 'lucide-react';
 
-// Calculate BMR using Mifflin-St Jeor equation
 const calculateBMR = (weight, height, age, gender) => {
   if (gender === 'male') {
     return 10 * weight + 6.25 * height - 5 * age + 5;
@@ -13,7 +11,6 @@ const calculateBMR = (weight, height, age, gender) => {
   return 10 * weight + 6.25 * height - 5 * age - 161;
 };
 
-// Calculate TDEE based on activity level
 const calculateTDEE = (bmr, activityLevel) => {
   const multipliers = {
     sedentary: 1.2,
@@ -25,7 +22,6 @@ const calculateTDEE = (bmr, activityLevel) => {
   return bmr * (multipliers[activityLevel] || 1.55);
 };
 
-// Adjust calories based on goal
 const calculateTargetCalories = (tdee, goal) => {
   switch (goal) {
     case 'lose_weight':
@@ -38,44 +34,43 @@ const calculateTargetCalories = (tdee, goal) => {
 };
 
 export default function Onboarding() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [checkState, setCheckState] = useState('loading'); // loading, form, redirecting
   const [isSaving, setIsSaving] = useState(false);
-  const hasCheckedRef = React.useRef(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!hasCheckedRef.current) {
-      hasCheckedRef.current = true;
-      checkExistingProfile();
-    }
-  }, []);
+    let mounted = true;
+    
+    const checkProfile = async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (!isAuth) {
+          if (mounted) window.location.href = createPageUrl('Home');
+          return;
+        }
+        
+        const user = await base44.auth.me();
+        const profiles = await base44.entities.UserProfile.filter({ 
+          created_by: user.email 
+        });
+        
+        if (profiles.length > 0 && profiles[0].onboarding_complete) {
+          if (mounted) {
+            setCheckState('redirecting');
+            window.location.href = createPageUrl('Dashboard');
+          }
+          return;
+        }
+        
+        if (mounted) setCheckState('form');
+      } catch (error) {
+        console.error('Profile check error:', error);
+        if (mounted) setCheckState('form');
+      }
+    };
 
-  const checkExistingProfile = async () => {
-    try {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) {
-        window.location.href = createPageUrl('Home');
-        return;
-      }
-      
-      const user = await base44.auth.me();
-      const profiles = await base44.entities.UserProfile.filter({ 
-        created_by: user.email 
-      });
-      
-      // If profile exists and onboarding is complete, go to dashboard
-      if (profiles.length > 0 && profiles[0].onboarding_complete) {
-        window.location.href = createPageUrl('Dashboard');
-        return;
-      }
-      
-      // Otherwise show onboarding form
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error checking profile:', error);
-      setIsLoading(false);
-    }
-  };
+    checkProfile();
+    return () => { mounted = false; };
+  }, []);
 
   const handleComplete = async (formData) => {
     setIsSaving(true);
@@ -115,8 +110,7 @@ export default function Onboarding() {
         await base44.entities.UserProfile.create(profileData);
       }
 
-      // Navigate to Dashboard (replace history so back button doesn't return to onboarding)
-      navigate(createPageUrl('Dashboard'), { replace: true });
+      window.location.href = createPageUrl('Dashboard');
     } catch (error) {
       console.error('Error saving profile:', error);
       alert('Failed to save your profile. Please try again.');
@@ -124,7 +118,7 @@ export default function Onboarding() {
     }
   };
 
-  if (isLoading) {
+  if (checkState !== 'form') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />

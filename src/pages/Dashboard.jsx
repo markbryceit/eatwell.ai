@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfWeek, addDays, differenceInDays, parseISO, addWeeks, isSameWeek } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Calendar, ChefHat, RefreshCw, BookOpen, Target, ArrowRight, Upload, Sparkles, GraduationCap, Users, TrendingUp, UtensilsCrossed, Plus, ChevronLeft, ChevronRight, Camera } from "lucide-react";
+import { Loader2, Calendar, ChefHat, RefreshCw, Target, ArrowRight, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import DaySelector from '@/components/dashboard/DaySelector';
 import MealPlanCard from '@/components/dashboard/MealPlanCard';
 import CalorieProgress from '@/components/dashboard/CalorieProgress';
@@ -17,11 +16,10 @@ import ManualMealSelector from '@/components/dashboard/ManualMealSelector';
 import FoodLogModal from '@/components/nutrition/FoodLogModal';
 import FastingTimer from '@/components/fasting/FastingTimer';
 import AppNavigation from '@/components/dashboard/AppNavigation';
-import { motion } from 'framer-motion';
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [initState, setInitState] = useState('loading'); // loading, ready, redirecting
   const [selectedWeekStart, setSelectedWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedDay, setSelectedDay] = useState(0);
   const [showCheckin, setShowCheckin] = useState(false);
@@ -32,96 +30,111 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [showFoodLog, setShowFoodLog] = useState(false);
 
+  // Initial auth check
   useEffect(() => {
-    const fetchUser = async () => {
+    let mounted = true;
+    
+    const initialize = async () => {
       try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (!isAuth) {
+          if (mounted) window.location.href = createPageUrl('Home');
+          return;
+        }
+
         const currentUser = await base44.auth.me();
-        setUser(currentUser);
+        const profiles = await base44.entities.UserProfile.filter({ 
+          created_by: currentUser.email 
+        });
+
+        if (!profiles || profiles.length === 0) {
+          if (mounted) {
+            setInitState('redirecting');
+            window.location.href = createPageUrl('Onboarding');
+          }
+          return;
+        }
+
+        if (mounted) {
+          setUser(currentUser);
+          setInitState('ready');
+        }
       } catch (error) {
-        console.log('Error fetching user:', error);
+        console.error('Init error:', error);
+        if (mounted) window.location.href = createPageUrl('Home');
       }
     };
-    fetchUser();
+
+    initialize();
+    return () => { mounted = false; };
   }, []);
 
-  // Fetch user profile - ONE TIME ONLY
-  const { data: profiles, isLoading: profileLoading } = useQuery({
+  // Fetch user profile
+  const { data: profiles } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
     },
-    retry: 0,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false
+    enabled: initState === 'ready',
+    staleTime: 10 * 60 * 1000
   });
 
   const profile = profiles?.[0];
 
   // Fetch meal plan for the selected week
-  const { data: mealPlans, isLoading: planLoading } = useQuery({
+  const { data: mealPlans } = useQuery({
     queryKey: ['mealPlans', format(selectedWeekStart, 'yyyy-MM-dd')],
     queryFn: async () => {
-      const currentUser = await base44.auth.me();
       const weekStartStr = format(selectedWeekStart, 'yyyy-MM-dd');
       return base44.entities.MealPlan.filter({ 
         week_start_date: weekStartStr,
-        created_by: currentUser.email 
+        created_by: user.email 
       });
     },
-    enabled: !!profile,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
+    enabled: !!profile && !!user,
+    staleTime: 5 * 60 * 1000
   });
 
   const currentPlan = mealPlans?.[0];
   const isCurrentWeek = isSameWeek(selectedWeekStart, new Date(), { weekStartsOn: 1 });
 
   // Fetch all recipes
-  const { data: recipes, isLoading: recipesLoading } = useQuery({
+  const { data: recipes } = useQuery({
     queryKey: ['recipes'],
     queryFn: () => base44.entities.Recipe.list(),
-    staleTime: 10 * 60 * 1000 // 10 minutes
+    enabled: initState === 'ready',
+    staleTime: 10 * 60 * 1000
   });
 
-  // Fetch favorites - defer until profile is loaded
+  // Fetch favorites
   const { data: favorites } = useQuery({
     queryKey: ['favorites'],
     queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
+      return base44.entities.FavoriteRecipe.filter({ created_by: user.email });
     },
-    enabled: !!profile,
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: false
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000
   });
 
-  // Fetch calorie logs - defer until profile is loaded
+  // Fetch calorie logs
   const { data: calorieLogs } = useQuery({
     queryKey: ['calorieLogs'],
     queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.CalorieLog.filter({ created_by: currentUser.email });
+      return base44.entities.CalorieLog.filter({ created_by: user.email });
     },
-    enabled: !!profile,
-    staleTime: 2 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false
+    enabled: !!user,
+    staleTime: 2 * 60 * 1000
   });
 
   // Fetch food logs
   const { data: foodLogs } = useQuery({
     queryKey: ['foodLogs'],
     queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.FoodLog.filter({ created_by: currentUser.email });
+      return base44.entities.FoodLog.filter({ created_by: user.email });
     },
-    enabled: !!profile,
-    staleTime: 2 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false
+    enabled: !!user,
+    staleTime: 2 * 60 * 1000
   });
 
   // Check if weekly checkin is needed
@@ -172,7 +185,6 @@ export default function Dashboard() {
       const existingLogs = calorieLogs?.filter(l => l.date === dateStr) || [];
       const existingLog = existingLogs[0];
 
-      // Check if meal is currently completed
       const currentlyCompleted = existingLog?.meals_logged?.find(m => m.meal_type === mealType)?.completed || false;
       const willBeCompleted = !currentlyCompleted;
 
@@ -213,9 +225,7 @@ export default function Dashboard() {
         });
       }
 
-      // Also create/delete FoodLog entry for macro tracking
       if (willBeCompleted) {
-        // Meal is being marked as completed - create FoodLog entry
         await base44.entities.FoodLog.create({
           date: dateStr,
           meal_type: mealType,
@@ -230,7 +240,6 @@ export default function Dashboard() {
           source: 'recipe'
         });
       } else {
-        // Meal is being unmarked - delete the FoodLog entry
         const foodLogs = await base44.entities.FoodLog.filter({ 
           date: dateStr, 
           meal_type: mealType,
@@ -292,7 +301,6 @@ export default function Dashboard() {
   const handleWeeklyCheckin = async (data) => {
     setIsGenerating(true);
     try {
-      // Calculate new calorie target
       const weight = parseFloat(data.weight_kg);
       const height = parseFloat(data.height_cm);
       const age = parseInt(data.age);
@@ -326,7 +334,6 @@ export default function Dashboard() {
           targetCalories = Math.round(tdee);
       }
 
-      // Update profile
       await base44.entities.UserProfile.update(profile.id, {
         weight_kg: weight,
         height_cm: height,
@@ -337,7 +344,6 @@ export default function Dashboard() {
         last_checkin_date: new Date().toISOString().split('T')[0]
       });
 
-      // Generate new meal plan for current week
       await generateMealPlan(targetCalories, startOfWeek(new Date(), { weekStartsOn: 1 }));
 
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
@@ -353,31 +359,26 @@ export default function Dashboard() {
     if (!recipes || recipes.length === 0) return;
 
     try {
-      // Call AI to generate personalized meal plan
       const { data } = await base44.functions.invoke('generateAIMealPlan', {
         calorie_target: calorieTarget
       });
 
       const weekStart = weekStartDate || startOfWeek(new Date(), { weekStartsOn: 1 });
       
-      // Add dates to the AI-generated days
       const daysWithDates = data.days.map((day, i) => ({
         ...day,
         date: format(addDays(weekStart, i), 'yyyy-MM-dd')
       }));
 
-      // Deactivate old plans for the same week
-      const currentUser = await base44.auth.me();
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
       const oldPlans = await base44.entities.MealPlan.filter({ 
         week_start_date: weekStartStr,
-        created_by: currentUser.email 
+        created_by: user.email 
       });
       for (const plan of oldPlans) {
         await base44.entities.MealPlan.delete(plan.id);
       }
 
-      // Create new AI-generated plan
       await base44.entities.MealPlan.create({
         week_start_date: weekStartStr,
         daily_calorie_target: calorieTarget,
@@ -407,7 +408,6 @@ export default function Dashboard() {
       [`${mealType}_recipe_id`]: newRecipe.id
     };
 
-    // Recalculate total calories
     const breakfast = getRecipeById(updatedDays[dayIndex].breakfast_recipe_id);
     const lunch = getRecipeById(updatedDays[dayIndex].lunch_recipe_id);
     const dinner = getRecipeById(updatedDays[dayIndex].dinner_recipe_id);
@@ -437,7 +437,6 @@ export default function Dashboard() {
       [`${mealType}_recipe_id`]: newRecipe.id
     };
 
-    // Recalculate total calories
     const breakfast = getRecipeById(updatedDays[dayIndex].breakfast_recipe_id);
     const lunch = getRecipeById(updatedDays[dayIndex].lunch_recipe_id);
     const dinner = getRecipeById(updatedDays[dayIndex].dinner_recipe_id);
@@ -457,29 +456,7 @@ export default function Dashboard() {
     setShowManualSelector(null);
   };
 
-  // ONE TIME redirect check only
-  const hasCheckedRef = React.useRef(false);
-  
-  React.useEffect(() => {
-    if (!hasCheckedRef.current && !profileLoading && profiles !== undefined) {
-      hasCheckedRef.current = true;
-      if (profiles.length === 0) {
-        window.location.href = createPageUrl('Onboarding');
-      }
-    }
-  }, [profiles, profileLoading]);
-
-  // Show loading while profile is being fetched
-  if (profileLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-      </div>
-    );
-  }
-
-  // Don't render if no profile (will redirect)
-  if (!profile) {
+  if (initState !== 'ready' || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
@@ -642,7 +619,6 @@ export default function Dashboard() {
                   {['breakfast', 'lunch', 'dinner', 'snack'].map((mealType) => {
                     const recipeId = todayMeals[`${mealType}_recipe_id`];
 
-                    // Skip inactive meals (null recipe IDs)
                     if (!recipeId) return null;
 
                     const recipe = getRecipeById(recipeId);
@@ -768,7 +744,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
+            {/* Weekly Check-in CTA */}
             <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg border-0 text-white">
               <CardContent className="p-6">
                 <h3 className="font-semibold text-lg mb-2">Weekly Check-in</h3>

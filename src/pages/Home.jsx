@@ -1,6 +1,5 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
-import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import HeroSection from '@/components/landing/HeroSection';
 import BenefitsSection from '@/components/landing/BenefitsSection';
@@ -8,10 +7,13 @@ import HowItWorksSection from '@/components/landing/HowItWorksSection';
 import CTASection from '@/components/landing/CTASection';
 
 export default function Home() {
-  const navigate = useNavigate();
-
   const handleGetStarted = async () => {
-    await base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+    const isAuth = await base44.auth.isAuthenticated();
+    if (isAuth) {
+      window.location.href = createPageUrl('Dashboard');
+    } else {
+      await base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+    }
   };
 
   return (
