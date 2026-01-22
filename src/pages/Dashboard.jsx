@@ -44,14 +44,17 @@ export default function Dashboard() {
     fetchUser();
   }, []);
 
-  // Fetch user profile
-  const { data: profiles, isLoading: profileLoading, error: profileError } = useQuery({
+  // Fetch user profile - ONE TIME ONLY
+  const { data: profiles, isLoading: profileLoading } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
     },
-    retry: 2
+    retry: 0,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false
   });
 
   const profile = profiles?.[0];
@@ -68,8 +71,7 @@ export default function Dashboard() {
       });
     },
     enabled: !!profile,
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
+    refetchOnMount: false,
     refetchOnWindowFocus: false
   });
 
@@ -455,18 +457,29 @@ export default function Dashboard() {
     setShowManualSelector(null);
   };
 
-  // Redirect to onboarding if no profile exists
-  const [hasRedirected, setHasRedirected] = useState(false);
+  // ONE TIME redirect check only
+  const hasCheckedRef = React.useRef(false);
   
-  useEffect(() => {
-    if (!profileLoading && profiles !== undefined && profiles.length === 0 && !hasRedirected) {
-      setHasRedirected(true);
-      navigate(createPageUrl('Onboarding'), { replace: true });
+  React.useEffect(() => {
+    if (!hasCheckedRef.current && !profileLoading && profiles !== undefined) {
+      hasCheckedRef.current = true;
+      if (profiles.length === 0) {
+        window.location.href = createPageUrl('Onboarding');
+      }
     }
-  }, [profiles, profileLoading, hasRedirected, navigate]);
+  }, [profiles, profileLoading]);
 
-  // Show loading while profile is being fetched or redirecting
-  if (profileLoading || !profile) {
+  // Show loading while profile is being fetched
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
+
+  // Don't render if no profile (will redirect)
+  if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />

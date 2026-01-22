@@ -40,22 +40,21 @@ const calculateTargetCalories = (tdee, goal) => {
 export default function Onboarding() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [hasChecked, setHasChecked] = useState(false);
+  const hasCheckedRef = React.useRef(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!hasChecked) {
+    if (!hasCheckedRef.current) {
+      hasCheckedRef.current = true;
       checkExistingProfile();
     }
-  }, [hasChecked]);
+  }, []);
 
   const checkExistingProfile = async () => {
     try {
-      setHasChecked(true);
-      
       const isAuth = await base44.auth.isAuthenticated();
       if (!isAuth) {
-        navigate(createPageUrl('Home'));
+        window.location.href = createPageUrl('Home');
         return;
       }
       
@@ -66,7 +65,7 @@ export default function Onboarding() {
       
       // If profile exists and onboarding is complete, go to dashboard
       if (profiles.length > 0 && profiles[0].onboarding_complete) {
-        navigate(createPageUrl('Dashboard'), { replace: true });
+        window.location.href = createPageUrl('Dashboard');
         return;
       }
       
