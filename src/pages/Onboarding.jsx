@@ -40,14 +40,19 @@ const calculateTargetCalories = (tdee, goal) => {
 export default function Onboarding() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasChecked, setHasChecked] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkExistingProfile();
-  }, []);
+    if (!hasChecked) {
+      checkExistingProfile();
+    }
+  }, [hasChecked]);
 
   const checkExistingProfile = async () => {
     try {
+      setHasChecked(true);
+      
       const isAuth = await base44.auth.isAuthenticated();
       if (!isAuth) {
         navigate(createPageUrl('Home'));
