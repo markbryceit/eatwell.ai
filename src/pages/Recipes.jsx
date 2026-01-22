@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Search, ArrowLeft, Star, Filter, Loader2, Plus, Edit, Trash2, Sparkles, X, Flame } from "lucide-react";
+import { Search, ArrowLeft, Star, Loader2, Plus, Sparkles, X, Flame } from "lucide-react";
 import RecipeCard from '@/components/recipes/RecipeCard';
 import RecipeModal from '@/components/recipes/RecipeModal';
 import RecipeEditModal from '@/components/recipes/RecipeEditModal';
@@ -22,6 +21,7 @@ import { format, startOfWeek, addDays } from 'date-fns';
 
 export default function Recipes() {
   const queryClient = useQueryClient();
+  const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMealType, setSelectedMealType] = useState('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -29,7 +29,6 @@ export default function Recipes() {
   const [editingRecipe, setEditingRecipe] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [user, setUser] = useState(null);
   const [advancedFilters, setAdvancedFilters] = useState({
     includeIngredients: [],
     excludeIngredients: [],
@@ -60,41 +59,31 @@ export default function Recipes() {
     fetchUser();
   }, []);
 
-  // Fetch all recipes
   const { data: recipes, isLoading: recipesLoading } = useQuery({
     queryKey: ['recipes'],
     queryFn: () => base44.entities.Recipe.list(),
-    staleTime: 15 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false
+    staleTime: 15 * 60 * 1000
   });
 
-  // Fetch favorites
   const { data: favorites } = useQuery({
     queryKey: ['favorites'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
     },
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: false
+    staleTime: 5 * 60 * 1000
   });
 
-  // Fetch current meal plan
   const { data: mealPlans } = useQuery({
     queryKey: ['mealPlans'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.MealPlan.filter({ is_active: true, created_by: currentUser.email });
     },
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: false
+    staleTime: 5 * 60 * 1000
   });
 
   const currentPlan = mealPlans?.[0];
-
   const isFavorite = (recipeId) => favorites?.some(f => f.recipe_id === recipeId);
 
   const toggleFavorite = useMutation({
@@ -109,7 +98,6 @@ export default function Recipes() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] })
   });
 
-  // Load AI recommendations - defer to avoid blocking initial render
   useEffect(() => {
     if (!user || !recipes || recipes.length === 0) return;
 
@@ -190,35 +178,28 @@ export default function Recipes() {
   };
 
   const filteredRecipes = (smartSearchResults?.recipes || recipes)?.filter(recipe => {
-    // If smart search is active, results are already filtered
     if (smartSearchResults) return true;
 
-    // Basic filters
     const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       recipe.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesMealType = selectedMealType === 'all' || recipe.meal_type === selectedMealType;
     const matchesFavorite = !showFavoritesOnly || isFavorite(recipe.id);
     
-    // Advanced filters - ingredients
     const recipeIngredients = recipe.ingredients?.map(i => i.toLowerCase()).join(' ') || '';
     const matchesIncludeIngredients = advancedFilters.includeIngredients.length === 0 ||
       advancedFilters.includeIngredients.every(ing => recipeIngredients.includes(ing));
     const matchesExcludeIngredients = advancedFilters.excludeIngredients.length === 0 ||
       !advancedFilters.excludeIngredients.some(ing => recipeIngredients.includes(ing));
     
-    // Advanced filters - dietary tags
     const matchesDietaryTags = advancedFilters.dietaryTags.length === 0 ||
       advancedFilters.dietaryTags.some(tag => recipe.dietary_tags?.includes(tag));
     
-    // Advanced filters - cuisine types
     const matchesCuisineTypes = advancedFilters.cuisineTypes.length === 0 ||
       advancedFilters.cuisineTypes.includes(recipe.cuisine_type);
     
-    // Advanced filters - prep time
     const totalTime = (recipe.prep_time_mins || 0) + (recipe.cook_time_mins || 0);
     const matchesPrepTime = advancedFilters.maxPrepTime >= 180 || totalTime <= advancedFilters.maxPrepTime;
     
-    // Advanced filters - calorie range
     const matchesCalories = recipe.calories >= advancedFilters.calorieRange[0] && 
       recipe.calories <= advancedFilters.calorieRange[1];
     
@@ -371,11 +352,14 @@ export default function Recipes() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 w-full">
           <div className="flex items-center gap-4">
-            <Link to={createPageUrl('dashboard')}>
-              <Button variant="ghost" size="icon" className="rounded-xl">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.location.href = createPageUrl('Dashboard')}
+              className="rounded-xl"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <div>
               <h1 className="text-3xl font-bold text-slate-900">Recipe Library</h1>
               <p className="text-slate-500">
