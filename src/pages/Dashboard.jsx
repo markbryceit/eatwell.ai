@@ -361,30 +361,38 @@ export default function Dashboard() {
   const handleSelectAlternative = async (newRecipe) => {
     if (!currentPlan || !showAlternatives) return;
     
-    const { mealType, dayIndex } = showAlternatives;
-    const updatedDays = [...currentPlan.days];
-    updatedDays[dayIndex] = {
-      ...updatedDays[dayIndex],
-      [`${mealType}_recipe_id`]: newRecipe.id
-    };
+    try {
+      const { mealType, dayIndex } = showAlternatives;
+      
+      console.log('Selecting alternative:', { mealType, dayIndex, newRecipeId: newRecipe.id });
+      
+      const updatedDays = JSON.parse(JSON.stringify(currentPlan.days));
+      updatedDays[dayIndex][`${mealType}_recipe_id`] = newRecipe.id;
 
-    const breakfast = getRecipeById(updatedDays[dayIndex].breakfast_recipe_id);
-    const lunch = getRecipeById(updatedDays[dayIndex].lunch_recipe_id);
-    const dinner = getRecipeById(updatedDays[dayIndex].dinner_recipe_id);
-    const snack = getRecipeById(updatedDays[dayIndex].snack_recipe_id);
-    
-    updatedDays[dayIndex].total_calories = 
-      (breakfast?.calories || 0) +
-      (lunch?.calories || 0) +
-      (dinner?.calories || 0) +
-      (snack?.calories || 0);
+      // Recalculate total calories
+      let totalCalories = 0;
+      ['breakfast', 'lunch', 'dinner', 'snack'].forEach(meal => {
+        const recipeId = updatedDays[dayIndex][`${meal}_recipe_id`];
+        if (recipeId) {
+          const recipe = recipes?.find(r => r.id === recipeId);
+          if (recipe) {
+            totalCalories += recipe.calories || 0;
+          }
+        }
+      });
+      
+      updatedDays[dayIndex].total_calories = totalCalories;
 
-    await base44.entities.MealPlan.update(currentPlan.id, {
-      days: updatedDays
-    });
+      await base44.entities.MealPlan.update(currentPlan.id, {
+        days: updatedDays
+      });
 
-    queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
-    setShowAlternatives(null);
+      setShowAlternatives(null);
+      await queryClient.invalidateQueries({ queryKey: ['mealPlans', format(selectedWeekStart, 'yyyy-MM-dd')] });
+    } catch (error) {
+      console.error('Failed to select alternative:', error);
+      alert('Failed to update meal. Please try again.');
+    }
   };
 
   const handleManualMealChange = async (newRecipe) => {
@@ -392,31 +400,39 @@ export default function Dashboard() {
     
     try {
       const { mealType, dayIndex } = showManualSelector;
-      const updatedDays = [...currentPlan.days];
-      updatedDays[dayIndex] = {
-        ...updatedDays[dayIndex],
-        [`${mealType}_recipe_id`]: newRecipe.id
-      };
-
-      const breakfast = getRecipeById(updatedDays[dayIndex].breakfast_recipe_id);
-      const lunch = getRecipeById(updatedDays[dayIndex].lunch_recipe_id);
-      const dinner = getRecipeById(updatedDays[dayIndex].dinner_recipe_id);
-      const snack = getRecipeById(updatedDays[dayIndex].snack_recipe_id);
       
-      updatedDays[dayIndex].total_calories = 
-        (breakfast?.calories || 0) +
-        (lunch?.calories || 0) +
-        (dinner?.calories || 0) +
-        (snack?.calories || 0);
+      console.log('Swapping meal:', { mealType, dayIndex, newRecipeId: newRecipe.id, newRecipeName: newRecipe.name });
+      
+      const updatedDays = JSON.parse(JSON.stringify(currentPlan.days));
+      updatedDays[dayIndex][`${mealType}_recipe_id`] = newRecipe.id;
+
+      // Recalculate total calories for the day
+      let totalCalories = 0;
+      ['breakfast', 'lunch', 'dinner', 'snack'].forEach(meal => {
+        const recipeId = updatedDays[dayIndex][`${meal}_recipe_id`];
+        if (recipeId) {
+          const recipe = recipes?.find(r => r.id === recipeId);
+          if (recipe) {
+            totalCalories += recipe.calories || 0;
+          }
+        }
+      });
+      
+      updatedDays[dayIndex].total_calories = totalCalories;
+
+      console.log('Updating meal plan with new days:', updatedDays[dayIndex]);
 
       await base44.entities.MealPlan.update(currentPlan.id, {
         days: updatedDays
       });
 
-      await queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
+      console.log('Meal plan updated successfully');
+
       setShowManualSelector(null);
+      await queryClient.invalidateQueries({ queryKey: ['mealPlans', format(selectedWeekStart, 'yyyy-MM-dd')] });
     } catch (error) {
       console.error('Failed to update meal:', error);
+      alert('Failed to swap meal. Please try again.');
     }
   };
 
