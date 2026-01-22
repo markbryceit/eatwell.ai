@@ -16,10 +16,10 @@ import ManualMealSelector from '@/components/dashboard/ManualMealSelector';
 import FoodLogModal from '@/components/nutrition/FoodLogModal';
 import FastingTimer from '@/components/fasting/FastingTimer';
 import AppNavigation from '@/components/dashboard/AppNavigation';
+import AuthGuard from '@/components/AuthGuard';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
-  const [initState, setInitState] = useState('loading'); // loading, ready, redirecting
   const [selectedWeekStart, setSelectedWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedDay, setSelectedDay] = useState(0);
   const [showCheckin, setShowCheckin] = useState(false);
@@ -30,114 +30,75 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [showFoodLog, setShowFoodLog] = useState(false);
 
-  // Initial auth check
   useEffect(() => {
-    let mounted = true;
-    
-    const initialize = async () => {
-      try {
-        const isAuth = await base44.auth.isAuthenticated();
-        if (!isAuth) {
-          if (mounted) window.location.href = createPageUrl('Home');
-          return;
-        }
-
-        const currentUser = await base44.auth.me();
-        const profiles = await base44.entities.UserProfile.filter({ 
-          created_by: currentUser.email 
-        });
-
-        if (!profiles || profiles.length === 0) {
-          if (mounted) {
-            setInitState('redirecting');
-            window.location.href = createPageUrl('Onboarding');
-          }
-          return;
-        }
-
-        if (mounted) {
-          setUser(currentUser);
-          setInitState('ready');
-        }
-      } catch (error) {
-        console.error('Init error:', error);
-        if (mounted) window.location.href = createPageUrl('Home');
-      }
+    const fetchUser = async () => {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
     };
-
-    initialize();
-    return () => { mounted = false; };
+    fetchUser();
   }, []);
 
-  // Fetch user profile
   const { data: profiles } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
     },
-    enabled: initState === 'ready',
     staleTime: 10 * 60 * 1000
   });
 
   const profile = profiles?.[0];
 
-  // Fetch meal plan for the selected week
   const { data: mealPlans } = useQuery({
     queryKey: ['mealPlans', format(selectedWeekStart, 'yyyy-MM-dd')],
     queryFn: async () => {
+      const currentUser = await base44.auth.me();
       const weekStartStr = format(selectedWeekStart, 'yyyy-MM-dd');
       return base44.entities.MealPlan.filter({ 
         week_start_date: weekStartStr,
-        created_by: user.email 
+        created_by: currentUser.email 
       });
     },
-    enabled: !!profile && !!user,
+    enabled: !!profile,
     staleTime: 5 * 60 * 1000
   });
 
   const currentPlan = mealPlans?.[0];
   const isCurrentWeek = isSameWeek(selectedWeekStart, new Date(), { weekStartsOn: 1 });
 
-  // Fetch all recipes
   const { data: recipes } = useQuery({
     queryKey: ['recipes'],
     queryFn: () => base44.entities.Recipe.list(),
-    enabled: initState === 'ready',
     staleTime: 10 * 60 * 1000
   });
 
-  // Fetch favorites
   const { data: favorites } = useQuery({
     queryKey: ['favorites'],
     queryFn: async () => {
-      return base44.entities.FavoriteRecipe.filter({ created_by: user.email });
+      const currentUser = await base44.auth.me();
+      return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
     },
-    enabled: !!user,
     staleTime: 5 * 60 * 1000
   });
 
-  // Fetch calorie logs
   const { data: calorieLogs } = useQuery({
     queryKey: ['calorieLogs'],
     queryFn: async () => {
-      return base44.entities.CalorieLog.filter({ created_by: user.email });
+      const currentUser = await base44.auth.me();
+      return base44.entities.CalorieLog.filter({ created_by: currentUser.email });
     },
-    enabled: !!user,
     staleTime: 2 * 60 * 1000
   });
 
-  // Fetch food logs
   const { data: foodLogs } = useQuery({
     queryKey: ['foodLogs'],
     queryFn: async () => {
-      return base44.entities.FoodLog.filter({ created_by: user.email });
+      const currentUser = await base44.auth.me();
+      return base44.entities.FoodLog.filter({ created_by: currentUser.email });
     },
-    enabled: !!user,
     staleTime: 2 * 60 * 1000
   });
 
-  // Check if weekly checkin is needed
   useEffect(() => {
     if (profile?.last_checkin_date) {
       const lastCheckin = parseISO(profile.last_checkin_date);
@@ -148,7 +109,6 @@ export default function Dashboard() {
     }
   }, [profile]);
 
-  // Set selected day to today (only for current week)
   useEffect(() => {
     if (isCurrentWeek) {
       const today = new Date();
@@ -164,7 +124,6 @@ export default function Dashboard() {
   }, [selectedWeekStart, isCurrentWeek]);
 
   const getRecipeById = (id) => recipes?.find(r => r.id === id);
-  
   const isFavorite = (recipeId) => favorites?.some(f => f.recipe_id === recipeId);
 
   const toggleFavorite = useMutation({
@@ -370,10 +329,11 @@ export default function Dashboard() {
         date: format(addDays(weekStart, i), 'yyyy-MM-dd')
       }));
 
+      const currentUser = await base44.auth.me();
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
       const oldPlans = await base44.entities.MealPlan.filter({ 
         week_start_date: weekStartStr,
-        created_by: user.email 
+        created_by: currentUser.email 
       });
       for (const plan of oldPlans) {
         await base44.entities.MealPlan.delete(plan.id);
@@ -456,314 +416,296 @@ export default function Dashboard() {
     setShowManualSelector(null);
   };
 
-  if (initState !== 'ready' || !profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-      </div>
-    );
-  }
-
   const todayMeals = currentPlan?.days?.[selectedDay];
   const todayLog = getTodayLog();
   const todayConsumed = todayLog?.calories_consumed || 0;
   const todayMacros = getTodayMacros();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
-      {showCheckin && (
-        <WeeklyCheckin 
-          currentProfile={profile}
-          onComplete={handleWeeklyCheckin}
-          isLoading={isGenerating}
-          onCancel={() => setShowCheckin(false)}
+    <AuthGuard requireProfile={true}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
+        {showCheckin && (
+          <WeeklyCheckin 
+            currentProfile={profile}
+            onComplete={handleWeeklyCheckin}
+            isLoading={isGenerating}
+            onCancel={() => setShowCheckin(false)}
+          />
+        )}
+
+        <FoodLogModal
+          isOpen={showFoodLog}
+          onClose={() => setShowFoodLog(false)}
+          onFoodLogged={() => {
+            queryClient.invalidateQueries({ queryKey: ['foodLogs'] });
+            queryClient.invalidateQueries({ queryKey: ['calorieLogs'] });
+          }}
+          selectedDate={format(addDays(selectedWeekStart, selectedDay), 'yyyy-MM-dd')}
         />
-      )}
 
-      <FoodLogModal
-        isOpen={showFoodLog}
-        onClose={() => setShowFoodLog(false)}
-        onFoodLogged={() => {
-          queryClient.invalidateQueries({ queryKey: ['foodLogs'] });
-          queryClient.invalidateQueries({ queryKey: ['calorieLogs'] });
-        }}
-        selectedDate={format(addDays(selectedWeekStart, selectedDay), 'yyyy-MM-dd')}
-      />
-
-      <RecipeModal
-        recipe={selectedRecipe}
-        isOpen={!!selectedRecipe}
-        onClose={() => setSelectedRecipe(null)}
-        isFavorite={selectedRecipe ? isFavorite(selectedRecipe.id) : false}
-        onToggleFavorite={() => {
-          if (selectedRecipe) toggleFavorite.mutate(selectedRecipe.id);
-        }}
-      />
-
-      {showAlternatives && (
-        <AlternativeMeals
-          mealType={showAlternatives.mealType}
-          currentRecipe={getRecipeById(todayMeals?.[`${showAlternatives.mealType}_recipe_id`])}
-          targetCalories={profile?.daily_calorie_target || 2000}
-          excludeRecipeIds={Object.values(todayMeals || {})
-            .filter(val => typeof val === 'string')
-            .filter(id => id !== todayMeals?.[`${showAlternatives.mealType}_recipe_id`])}
-          onSelectAlternative={handleSelectAlternative}
-          onClose={() => setShowAlternatives(null)}
+        <RecipeModal
+          recipe={selectedRecipe}
+          isOpen={!!selectedRecipe}
+          onClose={() => setSelectedRecipe(null)}
+          isFavorite={selectedRecipe ? isFavorite(selectedRecipe.id) : false}
+          onToggleFavorite={() => {
+            if (selectedRecipe) toggleFavorite.mutate(selectedRecipe.id);
+          }}
         />
-      )}
 
-      {showManualSelector && (
-        <ManualMealSelector
-          isOpen={!!showManualSelector}
-          mealType={showManualSelector.mealType}
-          onSelectRecipe={handleManualMealChange}
-          onClose={() => setShowManualSelector(null)}
-        />
-      )}
+        {showAlternatives && (
+          <AlternativeMeals
+            mealType={showAlternatives.mealType}
+            currentRecipe={getRecipeById(todayMeals?.[`${showAlternatives.mealType}_recipe_id`])}
+            targetCalories={profile?.daily_calorie_target || 2000}
+            excludeRecipeIds={Object.values(todayMeals || {})
+              .filter(val => typeof val === 'string')
+              .filter(id => id !== todayMeals?.[`${showAlternatives.mealType}_recipe_id`])}
+            onSelectAlternative={handleSelectAlternative}
+            onClose={() => setShowAlternatives(null)}
+          />
+        )}
 
-      <div className="max-w-6xl mx-auto px-4 py-8 w-full overflow-x-hidden box-border">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 w-full">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Your Meal Plan</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <p className="text-slate-500">
-                Week of {format(selectedWeekStart, 'MMM d, yyyy')}
-              </p>
-              {!isCurrentWeek && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleGoToCurrentWeek}
-                  className="text-emerald-600 hover:text-emerald-700 h-6 px-2"
-                >
-                  Go to current week
-                </Button>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <AppNavigation user={user} />
-            <Button
-              size="sm"
-              onClick={handleGenerateNewPlan}
-              disabled={isGenerating}
-              className="bg-slate-900 hover:bg-slate-800 rounded-xl"
-            >
-              {isGenerating ? (
-                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-              ) : (
-                <RefreshCw className="w-4 h-4 mr-1" />
-              )}
-              New Plan
-            </Button>
-          </div>
-        </div>
+        {showManualSelector && (
+          <ManualMealSelector
+            isOpen={!!showManualSelector}
+            mealType={showManualSelector.mealType}
+            onSelectRecipe={handleManualMealChange}
+            onClose={() => setShowManualSelector(null)}
+          />
+        )}
 
-        <div className="grid lg:grid-cols-3 gap-6 w-full max-w-full">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6 min-w-0">
-            {/* Week Navigation */}
-            <Card className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border-0 p-4">
-              <div className="flex items-center justify-between mb-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handlePreviousWeek}
-                  className="rounded-xl"
-                >
-                  <ChevronLeft className="w-4 h-4 mr-1" />
-                  Previous
-                </Button>
-                <div className="text-center">
-                  <p className="text-sm font-medium text-slate-900">
-                    {format(selectedWeekStart, 'MMM d')} - {format(addDays(selectedWeekStart, 6), 'MMM d, yyyy')}
-                  </p>
-                  {!isCurrentWeek && (
-                    <p className="text-xs text-slate-500">Viewing past week</p>
-                  )}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleNextWeek}
-                  className="rounded-xl"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              </div>
-              {currentPlan && (
-                <DaySelector
-                  weekStartDate={format(selectedWeekStart, 'yyyy-MM-dd')}
-                  selectedDay={selectedDay}
-                  onSelectDay={setSelectedDay}
-                />
-              )}
-            </Card>
-
-            {/* Meals for Selected Day */}
-            {currentPlan && todayMeals ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-slate-900">
-                    {todayMeals.day_name}'s Meals
-                  </h2>
-                  <span className="text-sm text-slate-500">
-                    ~{todayMeals.total_calories?.toLocaleString()} kcal planned
-                  </span>
-                </div>
-                
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {['breakfast', 'lunch', 'dinner', 'snack'].map((mealType) => {
-                    const recipeId = todayMeals[`${mealType}_recipe_id`];
-
-                    if (!recipeId) return null;
-
-                    const recipe = getRecipeById(recipeId);
-
-                    return (
-                      <MealPlanCard
-                        key={mealType}
-                        recipe={recipe}
-                        mealType={mealType}
-                        isCompleted={isMealCompleted(selectedDay, mealType)}
-                        isFavorite={recipe ? isFavorite(recipe.id) : false}
-                        onToggleFavorite={() => recipe && toggleFavorite.mutate(recipe.id)}
-                        onMarkComplete={() => {
-                          if (recipe) {
-                            const date = addDays(selectedWeekStart, selectedDay);
-                            logMeal.mutate({ recipe, date, mealType });
-                          }
-                        }}
-                        onViewRecipe={() => recipe && setSelectedRecipe(recipe)}
-                        onFindAlternatives={() => setShowAlternatives({ mealType, dayIndex: selectedDay })}
-                        onChangeMeal={() => setShowManualSelector({ mealType, dayIndex: selectedDay })}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <Card className="bg-white rounded-2xl shadow-sm border-0 p-12 text-center">
-                <ChefHat className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                  {isCurrentWeek ? 'No Meal Plan Yet' : 'No Meal Plan for This Week'}
-                </h3>
-                <p className="text-slate-500 mb-6">
-                  {isCurrentWeek 
-                    ? 'Generate your personalized meal plan for this week'
-                    : 'This week does not have a meal plan. You can still log meals manually.'
-                  }
+        <div className="max-w-6xl mx-auto px-4 py-8 w-full overflow-x-hidden box-border">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 w-full">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Your Meal Plan</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-slate-500">
+                  Week of {format(selectedWeekStart, 'MMM d, yyyy')}
                 </p>
-                {isCurrentWeek && (
+                {!isCurrentWeek && (
                   <Button
-                    onClick={handleGenerateNewPlan}
-                    disabled={isGenerating}
-                    className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleGoToCurrentWeek}
+                    className="text-emerald-600 hover:text-emerald-700 h-6 px-2"
                   >
-                    {isGenerating ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Calendar className="w-4 h-4 mr-2" />
-                    )}
-                    Generate Meal Plan
+                    Go to current week
                   </Button>
                 )}
-              </Card>
-            )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <AppNavigation user={user} />
+              <Button
+                size="sm"
+                onClick={handleGenerateNewPlan}
+                disabled={isGenerating}
+                className="bg-slate-900 hover:bg-slate-800 rounded-xl"
+              >
+                {isGenerating ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 mr-1" />
+                )}
+                New Plan
+              </Button>
+            </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6 min-w-0">
-            {/* Calorie Progress */}
-            <CalorieProgress
-              dailyTarget={profile?.daily_calorie_target || 2000}
-              consumed={todayConsumed}
-              weeklyLogs={getWeeklyLogs()}
-              macros={todayMacros}
-            />
-
-            {/* Intermittent Fasting */}
-            <FastingTimer />
-
-            {/* Quick Log Food */}
-            <Card className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg border-0 text-white">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-lg mb-2">Track Your Food</h3>
-                <p className="text-violet-100 text-sm mb-4">
-                  Scan barcodes or use AI to log meals and track macros
-                </p>
-                <Button
-                  onClick={() => setShowFoodLog(true)}
-                  className="w-full bg-white text-violet-700 hover:bg-violet-50 rounded-xl"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Log Food
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Profile Summary */}
-            <Card className="bg-white rounded-2xl shadow-sm border-0">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium text-slate-700 flex items-center gap-2">
-                  <Target className="w-5 h-5 text-emerald-500" />
-                  Your Goals
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Daily Target</span>
-                  <span className="font-semibold text-slate-900">
-                    {profile?.daily_calorie_target?.toLocaleString()} kcal
-                  </span>
+          <div className="grid lg:grid-cols-3 gap-6 w-full max-w-full">
+            <div className="lg:col-span-2 space-y-6 min-w-0">
+              <Card className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border-0 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePreviousWeek}
+                    className="rounded-xl"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Previous
+                  </Button>
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-slate-900">
+                      {format(selectedWeekStart, 'MMM d')} - {format(addDays(selectedWeekStart, 6), 'MMM d, yyyy')}
+                    </p>
+                    {!isCurrentWeek && (
+                      <p className="text-xs text-slate-500">Viewing past week</p>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleNextWeek}
+                    className="rounded-xl"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Goal</span>
-                  <span className="font-semibold text-slate-900 capitalize">
-                    {profile?.health_goal?.replace('_', ' ')}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Activity</span>
-                  <span className="font-semibold text-slate-900 capitalize">
-                    {profile?.activity_level?.replace('_', ' ')}
-                  </span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowCheckin(true)}
-                  className="w-full mt-2 rounded-xl"
-                >
-                  Update Stats
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
+                {currentPlan && (
+                  <DaySelector
+                    weekStartDate={format(selectedWeekStart, 'yyyy-MM-dd')}
+                    selectedDay={selectedDay}
+                    onSelectDay={setSelectedDay}
+                  />
+                )}
+              </Card>
 
-            {/* Weekly Check-in CTA */}
-            <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg border-0 text-white">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-lg mb-2">Weekly Check-in</h3>
-                <p className="text-emerald-100 text-sm mb-4">
-                  Update your stats to keep your meal plan optimized for your goals.
-                </p>
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowCheckin(true)}
-                  className="w-full bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Check-in Now
-                </Button>
-              </CardContent>
-            </Card>
+              {currentPlan && todayMeals ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-slate-900">
+                      {todayMeals.day_name}'s Meals
+                    </h2>
+                    <span className="text-sm text-slate-500">
+                      ~{todayMeals.total_calories?.toLocaleString()} kcal planned
+                    </span>
+                  </div>
+                  
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {['breakfast', 'lunch', 'dinner', 'snack'].map((mealType) => {
+                      const recipeId = todayMeals[`${mealType}_recipe_id`];
+                      if (!recipeId) return null;
+                      const recipe = getRecipeById(recipeId);
+
+                      return (
+                        <MealPlanCard
+                          key={mealType}
+                          recipe={recipe}
+                          mealType={mealType}
+                          isCompleted={isMealCompleted(selectedDay, mealType)}
+                          isFavorite={recipe ? isFavorite(recipe.id) : false}
+                          onToggleFavorite={() => recipe && toggleFavorite.mutate(recipe.id)}
+                          onMarkComplete={() => {
+                            if (recipe) {
+                              const date = addDays(selectedWeekStart, selectedDay);
+                              logMeal.mutate({ recipe, date, mealType });
+                            }
+                          }}
+                          onViewRecipe={() => recipe && setSelectedRecipe(recipe)}
+                          onFindAlternatives={() => setShowAlternatives({ mealType, dayIndex: selectedDay })}
+                          onChangeMeal={() => setShowManualSelector({ mealType, dayIndex: selectedDay })}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <Card className="bg-white rounded-2xl shadow-sm border-0 p-12 text-center">
+                  <ChefHat className="w-16 h-16 mx-auto text-slate-300 mb-4" />
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                    {isCurrentWeek ? 'No Meal Plan Yet' : 'No Meal Plan for This Week'}
+                  </h3>
+                  <p className="text-slate-500 mb-6">
+                    {isCurrentWeek 
+                      ? 'Generate your personalized meal plan for this week'
+                      : 'This week does not have a meal plan. You can still log meals manually.'
+                    }
+                  </p>
+                  {isCurrentWeek && (
+                    <Button
+                      onClick={handleGenerateNewPlan}
+                      disabled={isGenerating}
+                      className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+                    >
+                      {isGenerating ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Calendar className="w-4 h-4 mr-2" />
+                      )}
+                      Generate Meal Plan
+                    </Button>
+                  )}
+                </Card>
+              )}
+            </div>
+
+            <div className="space-y-6 min-w-0">
+              <CalorieProgress
+                dailyTarget={profile?.daily_calorie_target || 2000}
+                consumed={todayConsumed}
+                weeklyLogs={getWeeklyLogs()}
+                macros={todayMacros}
+              />
+
+              <FastingTimer />
+
+              <Card className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg border-0 text-white">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-lg mb-2">Track Your Food</h3>
+                  <p className="text-violet-100 text-sm mb-4">
+                    Scan barcodes or use AI to log meals and track macros
+                  </p>
+                  <Button
+                    onClick={() => setShowFoodLog(true)}
+                    className="w-full bg-white text-violet-700 hover:bg-violet-50 rounded-xl"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Log Food
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white rounded-2xl shadow-sm border-0">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg font-medium text-slate-700 flex items-center gap-2">
+                    <Target className="w-5 h-5 text-emerald-500" />
+                    Your Goals
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Daily Target</span>
+                    <span className="font-semibold text-slate-900">
+                      {profile?.daily_calorie_target?.toLocaleString()} kcal
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Goal</span>
+                    <span className="font-semibold text-slate-900 capitalize">
+                      {profile?.health_goal?.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Activity</span>
+                    <span className="font-semibold text-slate-900 capitalize">
+                      {profile?.activity_level?.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCheckin(true)}
+                    className="w-full mt-2 rounded-xl"
+                  >
+                    Update Stats
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg border-0 text-white">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-lg mb-2">Weekly Check-in</h3>
+                  <p className="text-emerald-100 text-sm mb-4">
+                    Update your stats to keep your meal plan optimized for your goals.
+                  </p>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setShowCheckin(true)}
+                    className="w-full bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Check-in Now
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </AuthGuard>
   );
 }

@@ -23,7 +23,6 @@ export default function Home() {
       <HowItWorksSection />
       <CTASection onGetStarted={handleGetStarted} />
       
-      {/* Footer */}
       <footer className="bg-slate-900 py-12 border-t border-slate-800">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <div className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-4">

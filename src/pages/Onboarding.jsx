@@ -34,13 +34,13 @@ const calculateTargetCalories = (tdee, goal) => {
 };
 
 export default function Onboarding() {
-  const [checkState, setCheckState] = useState('loading'); // loading, form, redirecting
+  const [state, setState] = useState('checking');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     
-    const checkProfile = async () => {
+    const check = async () => {
       try {
         const isAuth = await base44.auth.isAuthenticated();
         if (!isAuth) {
@@ -54,21 +54,18 @@ export default function Onboarding() {
         });
         
         if (profiles.length > 0 && profiles[0].onboarding_complete) {
-          if (mounted) {
-            setCheckState('redirecting');
-            window.location.href = createPageUrl('Dashboard');
-          }
+          if (mounted) window.location.href = createPageUrl('Dashboard');
           return;
         }
         
-        if (mounted) setCheckState('form');
+        if (mounted) setState('ready');
       } catch (error) {
-        console.error('Profile check error:', error);
-        if (mounted) setCheckState('form');
+        console.error('Check failed:', error);
+        if (mounted) setState('ready');
       }
     };
 
-    checkProfile();
+    check();
     return () => { mounted = false; };
   }, []);
 
@@ -118,7 +115,7 @@ export default function Onboarding() {
     }
   };
 
-  if (checkState !== 'form') {
+  if (state !== 'ready') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
