@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star, Clock, Flame, Check, Eye, Sparkles, Search } from "lucide-react";
 import { motion } from "framer-motion";
+import RatingPrompt from '@/components/recipes/RatingPrompt';
 
 export default function MealPlanCard({ 
   recipe, 
@@ -14,8 +15,11 @@ export default function MealPlanCard({
   onMarkComplete,
   onViewRecipe,
   onFindAlternatives,
-  onChangeMeal
+  onChangeMeal,
+  averageRating,
+  onRatingSubmitted
 }) {
+  const [showRatingPrompt, setShowRatingPrompt] = useState(false);
   if (!recipe) {
     return (
       <Card className="bg-slate-50 border-dashed border-2 border-slate-200 rounded-2xl">
@@ -97,10 +101,22 @@ export default function MealPlanCard({
           </div>
 
           <div className="space-y-2">
+            {averageRating && (
+              <div className="flex items-center gap-1 mb-2">
+                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                <span className="text-sm font-semibold text-slate-900">{averageRating}</span>
+                <span className="text-xs text-slate-500">average rating</span>
+              </div>
+            )}
             <Button 
               size="sm" 
               className={`w-full rounded-xl ${isCompleted ? 'bg-emerald-500' : 'bg-slate-900 hover:bg-slate-800'}`}
-              onClick={onMarkComplete}
+              onClick={() => {
+                onMarkComplete();
+                if (!isCompleted) {
+                  setTimeout(() => setShowRatingPrompt(true), 500);
+                }
+              }}
             >
               {isCompleted ? (
                 <>
@@ -144,6 +160,17 @@ export default function MealPlanCard({
           </div>
         </CardContent>
       </Card>
+
+      {showRatingPrompt && (
+        <RatingPrompt
+          recipe={recipe}
+          onClose={() => setShowRatingPrompt(false)}
+          onRatingSubmitted={() => {
+            setShowRatingPrompt(false);
+            onRatingSubmitted?.();
+          }}
+        />
+      )}
     </motion.div>
   );
 }

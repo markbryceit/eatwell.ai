@@ -26,6 +26,14 @@ export default function Recipes() {
   const [selectedMealType, setSelectedMealType] = useState('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
+
+  useEffect(() => {
+    const handleOpenRecipe = (e) => {
+      setSelectedRecipe(e.detail);
+    };
+    window.addEventListener('openRecipe', handleOpenRecipe);
+    return () => window.removeEventListener('openRecipe', handleOpenRecipe);
+  }, []);
   const [editingRecipe, setEditingRecipe] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -83,8 +91,21 @@ export default function Recipes() {
     staleTime: 5 * 60 * 1000
   });
 
+  const { data: ratings } = useQuery({
+    queryKey: ['recipeRatings'],
+    queryFn: () => base44.entities.RecipeRating.list(),
+    staleTime: 5 * 60 * 1000
+  });
+
   const currentPlan = mealPlans?.[0];
   const isFavorite = (recipeId) => favorites?.some(f => f.recipe_id === recipeId);
+  
+  const getAverageRating = (recipeId) => {
+    const recipeRatings = ratings?.filter(r => r.recipe_id === recipeId) || [];
+    if (recipeRatings.length === 0) return null;
+    const sum = recipeRatings.reduce((acc, r) => acc + r.rating, 0);
+    return (sum / recipeRatings.length).toFixed(1);
+  };
 
   const toggleFavorite = useMutation({
     mutationFn: async (recipeId) => {
@@ -566,6 +587,7 @@ export default function Recipes() {
                       setEditingRecipe(recipe);
                     } : null}
                     onAddToMealPlan={() => setRecipeToAdd(recipe)}
+                    averageRating={getAverageRating(recipe.id)}
                   />
                 </motion.div>
               ))}

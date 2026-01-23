@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Star, Clock, Flame, Edit, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick, onEdit, onAddToMealPlan }) {
+export default function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick, onEdit, onAddToMealPlan, averageRating }) {
   const mealTypeColors = {
     breakfast: "bg-amber-100 text-amber-700",
     lunch: "bg-emerald-100 text-emerald-700",
@@ -89,10 +89,18 @@ export default function RecipeCard({ recipe, isFavorite, onToggleFavorite, onCli
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3 text-xs">
-            <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg">P: {recipe.protein_g}g</span>
-            <span className="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg">C: {recipe.carbs_g}g</span>
-            <span className="px-2 py-1 bg-rose-50 text-rose-600 rounded-lg">F: {recipe.fat_g}g</span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg">P: {recipe.protein_g}g</span>
+              <span className="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg">C: {recipe.carbs_g}g</span>
+              <span className="px-2 py-1 bg-rose-50 text-rose-600 rounded-lg">F: {recipe.fat_g}g</span>
+            </div>
+            {averageRating && (
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                <span className="text-sm font-semibold text-slate-900">{averageRating}</span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -90,6 +90,12 @@ export default function Dashboard() {
     staleTime: 2 * 60 * 1000
   });
 
+  const { data: ratings } = useQuery({
+    queryKey: ['recipeRatings'],
+    queryFn: () => base44.entities.RecipeRating.list(),
+    staleTime: 5 * 60 * 1000
+  });
+
   const { data: foodLogs } = useQuery({
     queryKey: ['foodLogs'],
     queryFn: async () => {
@@ -125,6 +131,13 @@ export default function Dashboard() {
 
   const getRecipeById = (id) => recipes?.find(r => r.id === id);
   const isFavorite = (recipeId) => favorites?.some(f => f.recipe_id === recipeId);
+  
+  const getAverageRating = (recipeId) => {
+    const recipeRatings = ratings?.filter(r => r.recipe_id === recipeId) || [];
+    if (recipeRatings.length === 0) return null;
+    const sum = recipeRatings.reduce((acc, r) => acc + r.rating, 0);
+    return (sum / recipeRatings.length).toFixed(1);
+  };
 
   const toggleFavorite = useMutation({
     mutationFn: async (recipeId) => {
@@ -607,6 +620,8 @@ export default function Dashboard() {
                           onViewRecipe={() => recipe && setSelectedRecipe(recipe)}
                           onFindAlternatives={() => setShowAlternatives({ mealType, dayIndex: selectedDay })}
                           onChangeMeal={() => setShowManualSelector({ mealType, dayIndex: selectedDay })}
+                          averageRating={recipe ? getAverageRating(recipe.id) : null}
+                          onRatingSubmitted={() => queryClient.invalidateQueries({ queryKey: ['recipeRatings'] })}
                         />
                       );
                     })}
