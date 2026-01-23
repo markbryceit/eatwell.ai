@@ -8,6 +8,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import RatingStars from './RatingStars';
 import RecipeSubstitutions from './RecipeSubstitutions';
+import SimilarRecipes from './SimilarRecipes';
 
 const dietaryTagLabels = {
   'GF': 'Gluten Free',
@@ -332,15 +333,25 @@ export default function RecipeModal({ recipe, isOpen, onClose, isFavorite, onTog
                 Done
               </Button>
             </div>
-            </div>
-            </motion.div>
 
-            <RecipeSubstitutions
-            recipe={recipe}
-            isOpen={showSubstitutions}
-            onClose={() => setShowSubstitutions(false)}
+            <SimilarRecipes 
+              recipe={recipe}
+              onSelectRecipe={(similar) => {
+                onClose();
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent('openRecipe', { detail: similar }));
+                }, 100);
+              }}
             />
-            </motion.div>
-            </AnimatePresence>
-            );
-            }
+          </div>
+        </motion.div>
+
+        <RecipeSubstitutions
+          recipe={recipe}
+          isOpen={showSubstitutions}
+          onClose={() => setShowSubstitutions(false)}
+        />
+      </motion.div>
+    </AnimatePresence>
+  );
+}
