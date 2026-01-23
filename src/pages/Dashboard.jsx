@@ -306,7 +306,7 @@ export default function Dashboard() {
           targetCalories = Math.round(tdee);
       }
 
-      await base44.entities.UserProfile.update(profile.id, {
+      const profileData = {
         weight_kg: weight,
         height_cm: height,
         age: age,
@@ -314,7 +314,13 @@ export default function Dashboard() {
         health_goal: data.health_goal,
         daily_calorie_target: targetCalories,
         last_checkin_date: new Date().toISOString().split('T')[0]
-      });
+      };
+
+      if (profile && profile.id) {
+        await base44.entities.UserProfile.update(profile.id, profileData);
+      } else {
+        await base44.entities.UserProfile.create(profileData);
+      }
 
       await generateMealPlan(targetCalories, startOfWeek(new Date(), { weekStartsOn: 1 }));
 
@@ -323,6 +329,7 @@ export default function Dashboard() {
       setShowCheckin(false);
     } catch (error) {
       console.error('Error updating profile:', error);
+      alert('Failed to update profile. Please try again.');
     }
     setIsGenerating(false);
   };
