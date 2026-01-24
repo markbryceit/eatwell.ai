@@ -278,7 +278,7 @@ export default function Dashboard() {
       const age = parseInt(data.age);
       
       let bmr;
-      if (profile?.gender === 'male') {
+      if (data.gender === 'male') {
         bmr = 10 * weight + 6.25 * height - 5 * age + 5;
       } else {
         bmr = 10 * weight + 6.25 * height - 5 * age - 161;
@@ -289,7 +289,7 @@ export default function Dashboard() {
         light: 1.375,
         moderate: 1.55,
         active: 1.725,
-        very_active: 1.9
+        very_active: 1.725
       };
       
       const tdee = bmr * (multipliers[data.activity_level] || 1.55);
