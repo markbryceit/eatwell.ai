@@ -16,9 +16,7 @@ export default function AuthGuard({ children, requireProfile = false }) {
         if (!isAuth) {
           if (mounted) {
             setState('redirecting');
-            setTimeout(() => {
-              window.location.href = createPageUrl('Home');
-            }, 100);
+            await base44.auth.redirectToLogin(window.location.href);
           }
           return;
         }
@@ -32,9 +30,7 @@ export default function AuthGuard({ children, requireProfile = false }) {
           if (!profiles || profiles.length === 0 || !profiles[0].onboarding_complete) {
             if (mounted) {
               setState('redirecting');
-              setTimeout(() => {
-                window.location.href = createPageUrl('Onboarding');
-              }, 100);
+              window.location.href = createPageUrl('Onboarding');
             }
             return;
           }
@@ -45,9 +41,7 @@ export default function AuthGuard({ children, requireProfile = false }) {
         console.error('Auth check failed:', error);
         if (mounted) {
           setState('redirecting');
-          setTimeout(() => {
-            window.location.href = createPageUrl('Home');
-          }, 100);
+          await base44.auth.redirectToLogin(window.location.href);
         }
       }
     };
