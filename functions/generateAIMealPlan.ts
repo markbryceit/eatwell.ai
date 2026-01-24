@@ -171,16 +171,20 @@ REQUIREMENTS:
    - snack_recipe_id MUST come from recipesByType.snack array
    - DO NOT put desserts or cakes in breakfast slots
    - DO NOT put breakfast items in dinner slots
-5. For each meal type, try to get as close as possible to the target calories
-6. Prioritize recipes the user has favorited or highly rated when available
-7. Include popular community recipes (high community_favorites and community_avg_rating)
-8. Ensure variety - don't repeat the same recipe more than twice in the week
-9. Match dietary preferences and avoid disliked ingredients
-10. NEVER recommend any recipe from the disliked recipe IDs list
-11. If a perfect calorie match isn't available, pick the closest option and balance it across other meals
-11. Balance macros across the week (adequate protein, fiber)
-12. Mix familiar recipes (user has cooked) with new discoveries
-13. TOTAL daily calories should be within ±300 of the target by combining all 4 meals
+6. CRITICAL CALORIE MATCHING: For each meal, you MUST select recipes with calories VERY CLOSE to the target:
+   - Breakfast target: ${targetPerMeal.breakfast} kcal - select recipes between ${Math.round(targetPerMeal.breakfast * 0.8)}-${Math.round(targetPerMeal.breakfast * 1.2)} kcal
+   - Lunch target: ${targetPerMeal.lunch} kcal - select recipes between ${Math.round(targetPerMeal.lunch * 0.8)}-${Math.round(targetPerMeal.lunch * 1.2)} kcal
+   - Dinner target: ${targetPerMeal.dinner} kcal - select recipes between ${Math.round(targetPerMeal.dinner * 0.8)}-${Math.round(targetPerMeal.dinner * 1.2)} kcal
+   - Snack target: ${targetPerMeal.snack} kcal - select recipes between ${Math.round(targetPerMeal.snack * 0.8)}-${Math.round(targetPerMeal.snack * 1.2)} kcal
+   - Look at the "calories" field in each recipe and pick the ones closest to the target
+7. DAILY CALORIE TOTAL: The sum of all meals must be within ${calorie_target - 200} to ${calorie_target + 200} kcal
+8. Prioritize recipes the user has favorited or highly rated when available
+9. Include popular community recipes (high community_favorites and community_avg_rating)
+10. Ensure variety - don't repeat the same recipe more than twice in the week
+11. Match dietary preferences and avoid disliked ingredients
+12. NEVER recommend any recipe from the disliked recipe IDs list
+13. Balance macros across the week (adequate protein, fiber)
+14. Mix familiar recipes (user has cooked) with new discoveries
 
 CRITICAL VALIDATION:
 - Each day MUST have all 4 fields: breakfast_recipe_id, lunch_recipe_id, dinner_recipe_id, snack_recipe_id
