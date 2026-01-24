@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { X, Scan, Sparkles, Loader2, Plus, Check } from 'lucide-react';
+import { X, Scan, Sparkles, Loader2, Plus, Check, BookOpen } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import BarcodeScanner from './BarcodeScanner';
 import MacroRing from './MacroRing';
+import RecipeDiscovery from './RecipeDiscovery';
 
 const mealTypes = [
   { value: 'breakfast', label: 'Breakfast', color: 'amber' },
@@ -44,6 +45,23 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
     setNutritionData(null);
     setBarcode('');
     setSource('manual');
+  };
+
+  const handleRecipeSelect = (recipe) => {
+    setFoodName(recipe.name);
+    setServingSize(`${recipe.servings || 1} serving(s)`);
+    setNutritionData({
+      calories: recipe.calories,
+      protein_g: recipe.protein_g,
+      carbs_g: recipe.carbs_g,
+      fat_g: recipe.fat_g,
+      fiber_g: recipe.fiber_g || 0,
+      sugar_g: 0,
+      sodium_mg: 0
+    });
+    setSource('recipe');
+    setActiveTab('manual');
+    toast.success('Recipe loaded! Review and adjust quantity if needed.');
   };
 
   const handleBarcodeDetected = async (code) => {
@@ -217,9 +235,16 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
 
               {/* Input Method Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-                <TabsList className="w-full grid grid-cols-2">
-                  <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-                  <TabsTrigger value="barcode">Scan Barcode</TabsTrigger>
+                <TabsList className="w-full grid grid-cols-3">
+                  <TabsTrigger value="manual">Manual</TabsTrigger>
+                  <TabsTrigger value="recipe">
+                    <BookOpen className="w-4 h-4 mr-1" />
+                    Recipe
+                  </TabsTrigger>
+                  <TabsTrigger value="barcode">
+                    <Scan className="w-4 h-4 mr-1" />
+                    Scan
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="manual" className="space-y-4 mt-4">
@@ -266,6 +291,13 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
                     )}
                     Estimate Nutrition with AI
                   </Button>
+                </TabsContent>
+
+                <TabsContent value="recipe" className="mt-4">
+                  <RecipeDiscovery
+                    onSelectRecipe={handleRecipeSelect}
+                    selectedMealType={mealType}
+                  />
                 </TabsContent>
 
                 <TabsContent value="barcode" className="mt-4">
