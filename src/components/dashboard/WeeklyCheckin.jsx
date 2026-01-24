@@ -26,6 +26,7 @@ export default function WeeklyCheckin({ currentProfile, onComplete, isLoading, o
     weight_kg: currentProfile?.weight_kg || "",
     height_cm: currentProfile?.height_cm || "",
     age: currentProfile?.age || "",
+    gender: currentProfile?.gender || "male",
     activity_level: currentProfile?.activity_level || "moderate",
     health_goal: currentProfile?.health_goal || "maintain"
   });
@@ -65,6 +66,34 @@ export default function WeeklyCheckin({ currentProfile, onComplete, isLoading, o
           </p>
         </CardHeader>
         <CardContent className="space-y-6 p-6">
+          <div>
+            <Label className="text-slate-600 text-sm mb-3 block">
+              Gender
+            </Label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => updateField("gender", "male")}
+                className={`p-3 rounded-xl text-sm font-medium transition-all ${
+                  formData.gender === "male"
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Male
+              </button>
+              <button
+                onClick={() => updateField("gender", "female")}
+                className={`p-3 rounded-xl text-sm font-medium transition-all ${
+                  formData.gender === "female"
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Female
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="weight" className="text-slate-600 text-sm mb-2 block">

@@ -310,6 +310,7 @@ export default function Dashboard() {
         weight_kg: weight,
         height_cm: height,
         age: age,
+        gender: data.gender || profile?.gender || 'male',
         activity_level: data.activity_level,
         health_goal: data.health_goal,
         daily_calorie_target: targetCalories,
