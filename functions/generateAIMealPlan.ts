@@ -133,6 +133,13 @@ Deno.serve(async (req) => {
     if (targetPerMeal.dinner > 0) activeMealTypes.push('dinner');
     if (targetPerMeal.snack > 0) activeMealTypes.push('snack');
 
+    // Format recipes in a compact way to avoid CSP issues
+    const formatRecipes = (recipes) => {
+      return recipes.map(r => 
+        `ID: ${r.id} | ${r.name} | ${r.calories}kcal | P:${r.protein_g}g C:${r.carbs_g}g F:${r.fat_g}g${r.is_favorite ? ' ⭐' : ''}${r.user_has_cooked ? ' ✓' : ''}`
+      ).join('\n');
+    };
+
     const prompt = `You are a nutrition AI creating a 7-day meal plan.
 
 USER PROFILE:
@@ -156,8 +163,19 @@ USER BEHAVIOR:
 - High-rated recipes: ${highRatedRecipeIds.length} recipes
 - Has cooked: ${cookedRecipeIds.size} different recipes
 
-AVAILABLE RECIPES:
-${JSON.stringify(recipesByType, null, 2)}
+AVAILABLE RECIPES (⭐=favorite, ✓=cooked before):
+
+BREAKFAST OPTIONS:
+${formatRecipes(recipesByType.breakfast)}
+
+LUNCH OPTIONS:
+${formatRecipes(recipesByType.lunch)}
+
+DINNER OPTIONS:
+${formatRecipes(recipesByType.dinner)}
+
+SNACK OPTIONS:
+${formatRecipes(recipesByType.snack)}
 
 REQUIREMENTS:
 1. CRITICAL: Create a COMPLETE 7-day meal plan for EVERY day using ONLY the active meals: ${activeMealTypes.join(', ')}
