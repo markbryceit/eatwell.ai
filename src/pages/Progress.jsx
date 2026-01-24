@@ -5,18 +5,24 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, TrendingDown, TrendingUp, Award, Camera, Ruler } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { ArrowLeft, Plus, TrendingDown, TrendingUp, Award, Camera, Ruler, Utensils, Dumbbell } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, ComposedChart } from 'recharts';
 import { format, subDays, parseISO } from 'date-fns';
 import WeightEntryModal from '@/components/progress/WeightEntryModal';
 import ExerciseEntryModal from '@/components/progress/ExerciseEntryModal';
 import BodyMeasurementModal from '@/components/progress/BodyMeasurementModal';
+import MacroDistribution from '@/components/progress/MacroDistribution';
+import InsightsPanel from '@/components/progress/InsightsPanel';
+import StreakTracker from '@/components/progress/StreakTracker';
+import FoodLogModal from '@/components/nutrition/FoodLogModal';
 
 export default function Progress() {
   const queryClient = useQueryClient();
   const [showWeightEntry, setShowWeightEntry] = useState(false);
   const [showExerciseEntry, setShowExerciseEntry] = useState(false);
   const [showBodyMeasurement, setShowBodyMeasurement] = useState(false);
+  const [showFoodLog, setShowFoodLog] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
   const { data: weightLogs } = useQuery({
     queryKey: ['weightLogs'],
@@ -73,6 +79,17 @@ export default function Progress() {
     refetchOnWindowFocus: false
   });
 
+  const { data: foodLogs } = useQuery({
+    queryKey: ['foodLogs'],
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.FoodLog.filter({ created_by: currentUser.email }, '-date');
+    },
+    staleTime: 2 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false
+  });
+
   const profile = profiles?.[0];
   const latestBodyMeasurement = bodyMeasurements?.[0];
 
@@ -120,6 +137,16 @@ export default function Progress() {
         }}
       />
 
+      <FoodLogModal
+        isOpen={showFoodLog}
+        onClose={() => setShowFoodLog(false)}
+        onFoodLogged={() => {
+          queryClient.invalidateQueries({ queryKey: ['foodLogs'] });
+          queryClient.invalidateQueries({ queryKey: ['calorieLogs'] });
+        }}
+        selectedDate={selectedDate}
+      />
+
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -136,28 +163,49 @@ export default function Progress() {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() => setShowBodyMeasurement(true)}
-              className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
+              onClick={() => setShowFoodLog(true)}
+              className="rounded-xl border-violet-200 text-violet-600 hover:bg-violet-50"
             >
-              <Camera className="w-4 h-4 mr-2" />
-              Body Scan
+              <Utensils className="w-4 h-4 mr-2" />
+              Log Meal
             </Button>
             <Button
               variant="outline"
               onClick={() => setShowExerciseEntry(true)}
+              className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
+            >
+              <Dumbbell className="w-4 h-4 mr-2" />
+              Exercise
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowBodyMeasurement(true)}
               className="rounded-xl"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Log Exercise
+              <Camera className="w-4 h-4 mr-2" />
+              Body Scan
             </Button>
             <Button
               onClick={() => setShowWeightEntry(true)}
               className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Log Weight
+              Weight
             </Button>
           </div>
+        </div>
+
+        {/* Insights and Streaks */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="md:col-span-2">
+            <InsightsPanel
+              weightLogs={weightLogs}
+              calorieLogs={calorieLogs}
+              exerciseLogs={exerciseLogs}
+              profile={profile}
+            />
+          </div>
+          <StreakTracker calorieLogs={calorieLogs} />
         </div>
 
         {/* Summary Cards */}
@@ -242,26 +290,32 @@ export default function Progress() {
           </Card>
         )}
 
-        {/* Calorie Chart */}
-        {calorieChartData.length > 0 && (
-          <Card className="bg-white rounded-2xl shadow-sm border-0 mb-6">
-            <CardHeader>
-              <CardTitle>Calorie Tracking (Last 2 Weeks)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={calorieChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
-                  <YAxis stroke="#94a3b8" fontSize={12} />
-                  <Tooltip />
-                  <Bar dataKey="consumed" fill="#3b82f6" name="Consumed" />
-                  <Bar dataKey="target" fill="#e5e7eb" name="Target" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
+        {/* Calorie and Macro Section */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          {/* Calorie Chart */}
+          {calorieChartData.length > 0 && (
+            <Card className="bg-white rounded-2xl shadow-sm border-0">
+              <CardHeader>
+                <CardTitle>Calorie Tracking (Last 2 Weeks)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <ComposedChart data={calorieChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
+                    <YAxis stroke="#94a3b8" fontSize={12} />
+                    <Tooltip />
+                    <Bar dataKey="consumed" fill="#3b82f6" name="Consumed" />
+                    <Line type="monotone" dataKey="target" stroke="#10b981" strokeWidth={2} name="Target" />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* Macro Distribution */}
+          <MacroDistribution foodLogs={foodLogs} />
+        </div>
 
         {/* Exercise Chart */}
         {exerciseChartData.length > 0 && (
