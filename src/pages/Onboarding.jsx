@@ -93,6 +93,10 @@ export default function Onboarding() {
         eating_style: formData.eating_style || [],
         allergies: formData.allergies || [],
         disliked_foods: formData.disliked_foods || [],
+        meals_per_day: formData.meals_per_day || 3,
+        cooking_skill_level: formData.cooking_skill_level || 'intermediate',
+        max_cooking_time_mins: formData.max_cooking_time_mins || null,
+        cuisine_preferences: formData.cuisine_preferences || [],
         daily_calorie_target: targetCalories,
         last_checkin_date: new Date().toISOString().split('T')[0],
         onboarding_complete: true
@@ -126,10 +130,13 @@ export default function Onboarding() {
         is_active: true
       });
 
+      // Small delay to ensure data is persisted
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       window.location.href = createPageUrl('Dashboard');
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Failed to save your profile. Please try again.');
+      alert('Failed to create your personalized meal plan. Please try again.');
       setIsSaving(false);
     }
   };
