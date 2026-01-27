@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 import { Loader2 } from 'lucide-react';
+import { startOfWeek, addDays, format } from 'date-fns';
 
 const calculateBMR = (weight, height, age, gender) => {
   if (gender === 'male') {
@@ -106,6 +107,24 @@ export default function Onboarding() {
       } else {
         await base44.entities.UserProfile.create(profileData);
       }
+
+      // Generate initial meal plan automatically
+      const { data } = await base44.functions.invoke('generateAIMealPlan', {
+        calorie_target: targetCalories
+      });
+
+      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const daysWithDates = data.days.map((day, i) => ({
+        ...day,
+        date: format(addDays(weekStart, i), 'yyyy-MM-dd')
+      }));
+
+      await base44.entities.MealPlan.create({
+        week_start_date: format(weekStart, 'yyyy-MM-dd'),
+        daily_calorie_target: targetCalories,
+        days: daysWithDates,
+        is_active: true
+      });
 
       window.location.href = createPageUrl('Dashboard');
     } catch (error) {
