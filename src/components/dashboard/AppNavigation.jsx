@@ -14,12 +14,12 @@ export default function AppNavigation({ user }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { label: 'AI Coach', icon: Sparkles, page: 'NutritionCoach', color: 'text-emerald-600' },
     { label: 'Progress', icon: TrendingUp, page: 'Progress', color: 'text-emerald-600' },
     { label: 'Recipes', icon: BookOpen, page: 'Recipes', color: 'text-slate-700' },
-    { label: 'Kids Meals', icon: null, page: 'KidsMeals', color: 'text-pink-600', emoji: '👶' },
+    { label: 'AI Coach', icon: Sparkles, page: 'NutritionCoach', color: 'text-violet-600' },
     { label: 'Discover', icon: Sparkles, page: 'Discover', color: 'text-violet-600' },
-    { label: 'Planner', icon: Calendar, page: 'MealPlanner', color: 'text-slate-700' },
+    { label: 'Weekly Planner', icon: Calendar, page: 'MealPlanner', color: 'text-slate-700' },
+    { label: 'Kids Meals', icon: null, page: 'KidsMeals', color: 'text-pink-600', emoji: '👶' },
     { label: 'Fridge Scanner', icon: Camera, page: 'FridgeScanner', color: 'text-teal-600' },
     { label: 'Dining Out', icon: UtensilsCrossed, page: 'DiningOut', color: 'text-teal-600' },
     { label: 'Community', icon: Users, page: 'Community', color: 'text-blue-600' },

@@ -16,6 +16,7 @@ import ManualMealSelector from '@/components/dashboard/ManualMealSelector';
 import FoodLogModal from '@/components/nutrition/FoodLogModal';
 import FastingTimer from '@/components/fasting/FastingTimer';
 import AppNavigation from '@/components/dashboard/AppNavigation';
+import QuickActions from '@/components/dashboard/QuickActions';
 import AuthGuard from '@/components/AuthGuard';
 
 export default function Dashboard() {
@@ -30,18 +31,11 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [showFoodLog, setShowFoodLog] = useState(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-    };
-    fetchUser();
-  }, []);
-
   const { data: profiles } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
+      setUser(currentUser);
       return base44.entities.UserProfile.filter({ created_by: currentUser.email });
     },
     staleTime: 10 * 60 * 1000
@@ -665,7 +659,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="space-y-6 min-w-0">
+            <div className="space-y-4 min-w-0">
               <CalorieProgress
                 dailyTarget={profile?.daily_calorie_target || 2000}
                 consumed={todayConsumed}
@@ -673,75 +667,65 @@ export default function Dashboard() {
                 macros={todayMacros}
               />
 
+              <QuickActions
+                onLogFood={() => setShowFoodLog(true)}
+                onGeneratePlan={handleGenerateNewPlan}
+                onAICoach={() => window.location.href = createPageUrl('NutritionCoach')}
+                isGenerating={isGenerating}
+              />
+
               <FastingTimer />
 
-              <Card className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg border-0 text-white">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-2">Track Your Food</h3>
-                  <p className="text-violet-100 text-sm mb-4">
-                    Scan barcodes or use AI to log meals and track macros
+              <Card className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg border-0 text-white overflow-hidden">
+                <CardContent className="p-5">
+                  <h3 className="font-semibold mb-1.5">Quick Log Food</h3>
+                  <p className="text-violet-100 text-xs mb-3">
+                    Barcode scan or AI nutrition
                   </p>
                   <Button
                     onClick={() => setShowFoodLog(true)}
-                    className="w-full bg-white text-violet-700 hover:bg-violet-50 rounded-xl"
+                    className="w-full bg-white text-violet-700 hover:bg-violet-50 rounded-xl h-10"
                   >
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="w-4 h-4 mr-1.5" />
                     Log Food
                   </Button>
                 </CardContent>
               </Card>
 
               <Card className="bg-white rounded-2xl shadow-sm border-0">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-medium text-slate-700 flex items-center gap-2">
-                    <Target className="w-5 h-5 text-emerald-500" />
-                    Your Goals
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Daily Target</span>
-                    <span className="font-semibold text-slate-900">
-                      {profile?.daily_calorie_target?.toLocaleString()} kcal
-                    </span>
+                <CardContent className="p-5 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="w-4 h-4 text-emerald-500" />
+                    <h3 className="font-semibold text-sm">Your Stats</h3>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Goal</span>
-                    <span className="font-semibold text-slate-900 capitalize">
-                      {profile?.health_goal?.replace('_', ' ')}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Activity</span>
-                    <span className="font-semibold text-slate-900 capitalize">
-                      {profile?.activity_level?.replace('_', ' ')}
-                    </span>
+                  <div className="space-y-2.5 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 text-xs">Daily Target</span>
+                      <span className="font-semibold text-slate-900">
+                        {profile?.daily_calorie_target?.toLocaleString()} kcal
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 text-xs">Goal</span>
+                      <span className="font-medium text-slate-900 capitalize text-xs">
+                        {profile?.health_goal?.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 text-xs">Activity</span>
+                      <span className="font-medium text-slate-900 capitalize text-xs">
+                        {profile?.activity_level?.replace('_', ' ')}
+                      </span>
+                    </div>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setShowCheckin(true)}
-                    className="w-full mt-2 rounded-xl"
+                    className="w-full mt-2 rounded-xl h-9 text-xs"
                   >
                     Update Stats
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg border-0 text-white">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-2">Weekly Check-in</h3>
-                  <p className="text-emerald-100 text-sm mb-4">
-                    Update your stats to keep your meal plan optimized for your goals.
-                  </p>
-                  <Button
-                    variant="secondary"
-                    onClick={() => setShowCheckin(true)}
-                    className="w-full bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Check-in Now
+                    <ArrowRight className="w-3 h-3 ml-2" />
                   </Button>
                 </CardContent>
               </Card>

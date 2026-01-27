@@ -55,18 +55,6 @@ export default function Recipes() {
   const [generatedRecipe, setGeneratedRecipe] = useState(null);
   const [showGeneratedPreview, setShowGeneratedPreview] = useState(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.log('Error fetching user:', error);
-      }
-    };
-    fetchUser();
-  }, []);
-
   const { data: recipes, isLoading: recipesLoading } = useQuery({
     queryKey: ['recipes'],
     queryFn: () => base44.entities.Recipe.list(),
@@ -77,6 +65,7 @@ export default function Recipes() {
     queryKey: ['favorites'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
+      setUser(currentUser);
       return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
     },
     staleTime: 5 * 60 * 1000
@@ -409,49 +398,51 @@ export default function Recipes() {
         </div>
 
         {/* Smart Search */}
-        <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl shadow-lg p-6 mb-6 text-white">
-          <div className="flex items-center gap-3 mb-3">
-            <Sparkles className="w-6 h-6" />
+        <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl shadow-lg p-5 mb-6 text-white">
+          <div className="flex items-center gap-2.5 mb-3">
+            <Sparkles className="w-5 h-5" />
             <div>
-              <h3 className="font-semibold text-lg">Smart Recipe Search</h3>
-              <p className="text-violet-100 text-sm">Try: "quick vegan dinner under 400 calories" or "high protein breakfast with eggs"</p>
+              <h3 className="font-semibold">AI Recipe Search</h3>
+              <p className="text-violet-100 text-xs">E.g., "low calorie dinner" or "high protein breakfast"</p>
             </div>
           </div>
           <div className="flex gap-2">
             <Input
-              placeholder="Describe what you're looking for in natural language..."
+              placeholder="Describe what you want..."
               value={smartSearchQuery}
               onChange={(e) => setSmartSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSmartSearch()}
-              className="h-12 rounded-xl bg-white/20 border-white/30 text-white placeholder:text-violet-200"
+              onKeyPress={(e) => e.key === 'Enter' && smartSearchQuery.trim() && handleSmartSearch()}
+              className="h-11 rounded-xl bg-white/20 border-white/30 text-white placeholder:text-violet-200 focus:bg-white/25"
+              autoComplete="off"
             />
             <Button
               onClick={handleSmartSearch}
               disabled={isSmartSearching || !smartSearchQuery.trim()}
-              className="h-12 px-6 bg-white text-violet-600 hover:bg-violet-50 rounded-xl"
+              className="h-11 px-5 bg-white text-violet-600 hover:bg-violet-50 rounded-xl shrink-0"
             >
               {isSmartSearching ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Search
+                  <Sparkles className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Search</span>
                 </>
               )}
             </Button>
             {smartSearchResults && (
               <Button
                 variant="outline"
+                size="icon"
                 onClick={clearSmartSearch}
-                className="h-12 rounded-xl border-white/30 text-white hover:bg-white/10"
+                className="h-11 w-11 rounded-xl border-white/30 text-white hover:bg-white/10 shrink-0"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </Button>
             )}
           </div>
           {smartSearchResults && (
-            <div className="mt-3 text-violet-100 text-sm">
-              Found {smartSearchResults.totalResults} recipes matching your search
+            <div className="mt-2.5 text-violet-100 text-xs">
+              ✓ Found {smartSearchResults.totalResults} matching recipes
             </div>
           )}
         </div>
