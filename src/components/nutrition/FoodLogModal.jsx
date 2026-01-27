@@ -19,6 +19,15 @@ const mealTypes = [
 ];
 
 export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMealType, selectedDate }) {
+  // Auto-detect meal type based on time of day
+  const getDefaultMealType = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 11) return 'breakfast';
+    if (hour >= 11 && hour < 15) return 'lunch';
+    if (hour >= 15 && hour < 18) return 'snack';
+    return 'dinner';
+  };
+
   const [activeTab, setActiveTab] = useState('manual');
   const [showScanner, setShowScanner] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +37,7 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
   const [brand, setBrand] = useState('');
   const [servingSize, setServingSize] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [mealType, setMealType] = useState(defaultMealType || 'breakfast');
+  const [mealType, setMealType] = useState(defaultMealType || getDefaultMealType());
   
   // Nutritional info
   const [nutritionData, setNutritionData] = useState(null);
@@ -47,21 +56,37 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
     setSource('manual');
   };
 
-  const handleRecipeSelect = (recipe) => {
-    setFoodName(recipe.name);
-    setServingSize(`${recipe.servings || 1} serving(s)`);
-    setNutritionData({
-      calories: recipe.calories,
-      protein_g: recipe.protein_g,
-      carbs_g: recipe.carbs_g,
-      fat_g: recipe.fat_g,
-      fiber_g: recipe.fiber_g || 0,
-      sugar_g: 0,
-      sodium_mg: 0
-    });
-    setSource('recipe');
-    setActiveTab('manual');
-    toast.success('Recipe loaded! Review and adjust quantity if needed.');
+  const handleRecipeSelect = async (recipe) => {
+    setIsLoading(true);
+    
+    try {
+      const foodLog = {
+        date: selectedDate || new Date().toISOString().split('T')[0],
+        meal_type: mealType,
+        food_name: recipe.name,
+        serving_size: `${recipe.servings || 1} serving(s)`,
+        quantity: 1,
+        calories: recipe.calories,
+        protein_g: recipe.protein_g,
+        carbs_g: recipe.carbs_g,
+        fat_g: recipe.fat_g,
+        fiber_g: recipe.fiber_g || 0,
+        sugar_g: 0,
+        sodium_mg: 0,
+        source: 'recipe'
+      };
+
+      await base44.entities.FoodLog.create(foodLog);
+      toast.success(`${recipe.name} logged!`);
+      onFoodLogged();
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.error('Error logging recipe:', error);
+      toast.error('Failed to log recipe');
+    }
+    
+    setIsLoading(false);
   };
 
   const handleBarcodeDetected = async (code) => {
@@ -248,17 +273,19 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
                 </TabsList>
 
                 <TabsContent value="manual" className="space-y-4 mt-4">
-                  <div>
-                    <Label>Food Name</Label>
-                    <Input
-                      value={foodName}
-                      onChange={(e) => setFoodName(e.target.value)}
-                      placeholder="e.g., Chicken Breast"
-                      className="mt-1"
-                    />
-                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <Label>Food Name</Label>
+                      <Input
+                        value={foodName}
+                        onChange={(e) => setFoodName(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && foodName && handleAIEstimate()}
+                        placeholder="e.g., Chicken Breast"
+                        className="mt-1"
+                        autoFocus
+                      />
+                    </div>
 
-                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>Brand (Optional)</Label>
                       <Input
@@ -269,11 +296,11 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
                       />
                     </div>
                     <div>
-                      <Label>Serving Size</Label>
+                      <Label>Serving</Label>
                       <Input
                         value={servingSize}
                         onChange={(e) => setServingSize(e.target.value)}
-                        placeholder="e.g., 100g"
+                        placeholder="100g, 1 cup"
                         className="mt-1"
                       />
                     </div>
@@ -289,15 +316,22 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
                     ) : (
                       <Sparkles className="w-4 h-4 mr-2" />
                     )}
-                    Estimate Nutrition with AI
+                    Estimate with AI
                   </Button>
                 </TabsContent>
 
                 <TabsContent value="recipe" className="mt-4">
-                  <RecipeDiscovery
-                    onSelectRecipe={handleRecipeSelect}
-                    selectedMealType={mealType}
-                  />
+                  {isLoading ? (
+                    <div className="flex flex-col items-center justify-center py-12 gap-3">
+                      <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+                      <p className="text-sm text-slate-500">Logging your meal...</p>
+                    </div>
+                  ) : (
+                    <RecipeDiscovery
+                      onSelectRecipe={handleRecipeSelect}
+                      selectedMealType={mealType}
+                    />
+                  )}
                 </TabsContent>
 
                 <TabsContent value="barcode" className="mt-4">
@@ -315,52 +349,50 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
 
               {/* Nutrition Display */}
               {nutritionData && (
-                <div className="space-y-4 p-4 bg-slate-50 rounded-2xl">
+                <div className="space-y-4 p-4 bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl border border-slate-200">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-slate-900">Nutritional Information</h3>
+                    <h3 className="font-semibold text-slate-900">Nutrition Estimate</h3>
                     <Check className="w-5 h-5 text-emerald-500" />
                   </div>
 
                   <div className="flex items-center justify-center">
                     <MacroRing
-                      protein={nutritionData.protein_g}
-                      carbs={nutritionData.carbs_g}
-                      fat={nutritionData.fat_g}
-                      size={120}
+                      protein={nutritionData.protein_g * quantity}
+                      carbs={nutritionData.carbs_g * quantity}
+                      fat={nutritionData.fat_g * quantity}
+                      size={100}
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-white rounded-xl">
-                      <div className="text-xs text-slate-500">Calories</div>
-                      <div className="text-lg font-bold text-slate-900">{nutritionData.calories}</div>
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    <div className="p-2.5 bg-white rounded-lg shadow-sm">
+                      <div className="text-[10px] text-slate-500 uppercase">Cal</div>
+                      <div className="text-base font-bold text-orange-600">{Math.round(nutritionData.calories * quantity)}</div>
                     </div>
-                    <div className="p-3 bg-white rounded-xl">
-                      <div className="text-xs text-slate-500">Quantity</div>
-                      <Input
-                        type="number"
-                        min="0.1"
-                        step="0.1"
-                        value={quantity}
-                        onChange={(e) => setQuantity(parseFloat(e.target.value) || 1)}
-                        className="mt-1 h-8"
-                      />
+                    <div className="p-2.5 bg-white rounded-lg shadow-sm">
+                      <div className="text-[10px] text-slate-500 uppercase">Pro</div>
+                      <div className="text-base font-bold text-blue-600">{Math.round(nutritionData.protein_g * quantity)}g</div>
+                    </div>
+                    <div className="p-2.5 bg-white rounded-lg shadow-sm">
+                      <div className="text-[10px] text-slate-500 uppercase">Carb</div>
+                      <div className="text-base font-bold text-amber-600">{Math.round(nutritionData.carbs_g * quantity)}g</div>
+                    </div>
+                    <div className="p-2.5 bg-white rounded-lg shadow-sm">
+                      <div className="text-[10px] text-slate-500 uppercase">Fat</div>
+                      <div className="text-base font-bold text-rose-600">{Math.round(nutritionData.fat_g * quantity)}g</div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="p-3 bg-blue-50 rounded-xl">
-                      <div className="text-sm font-medium text-blue-600">Protein</div>
-                      <div className="text-lg font-bold text-blue-700">{nutritionData.protein_g}g</div>
-                    </div>
-                    <div className="p-3 bg-amber-50 rounded-xl">
-                      <div className="text-sm font-medium text-amber-600">Carbs</div>
-                      <div className="text-lg font-bold text-amber-700">{nutritionData.carbs_g}g</div>
-                    </div>
-                    <div className="p-3 bg-rose-50 rounded-xl">
-                      <div className="text-sm font-medium text-rose-600">Fat</div>
-                      <div className="text-lg font-bold text-rose-700">{nutritionData.fat_g}g</div>
-                    </div>
+                  <div>
+                    <Label className="text-xs">Quantity</Label>
+                    <Input
+                      type="number"
+                      min="0.1"
+                      step="0.1"
+                      value={quantity}
+                      onChange={(e) => setQuantity(parseFloat(e.target.value) || 1)}
+                      className="mt-1"
+                    />
                   </div>
                 </div>
               )}
