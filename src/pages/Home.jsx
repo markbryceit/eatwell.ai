@@ -10,9 +10,16 @@ export default function Home() {
   const handleGetStarted = async () => {
     const isAuth = await base44.auth.isAuthenticated();
     if (isAuth) {
-      window.location.href = createPageUrl('Dashboard');
+      const user = await base44.auth.me();
+      const profiles = await base44.entities.UserProfile.filter({ created_by: user.email });
+      
+      if (profiles && profiles.length > 0 && profiles[0].onboarding_complete) {
+        window.location.href = createPageUrl('Dashboard');
+      } else {
+        window.location.href = createPageUrl('Onboarding');
+      }
     } else {
-      await base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+      await base44.auth.redirectToLogin(createPageUrl('Home'));
     }
   };
 
