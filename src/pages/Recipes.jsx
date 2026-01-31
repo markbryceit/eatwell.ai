@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Search, ArrowLeft, Star, Loader2, Plus, Sparkles, X, Flame } from "lucide-react";
+import { Search, ArrowLeft, Star, Loader2, Plus, Sparkles, X, Flame, ChefHat } from "lucide-react";
 import RecipeCard from '@/components/recipes/RecipeCard';
 import RecipeModal from '@/components/recipes/RecipeModal';
 import RecipeEditModal from '@/components/recipes/RecipeEditModal';
@@ -407,6 +407,7 @@ export default function Recipes() {
             </div>
           </div>
 
+          <div className="flex gap-2">
             <Input
               placeholder="Describe what you want..."
               value={smartSearchQuery}
