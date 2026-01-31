@@ -11,6 +11,7 @@ import { ArrowLeft, MessageSquare, TrendingUp, Users, Plus, Trophy } from 'lucid
 import CommunityPostCard from '@/components/community/CommunityPostCard';
 import CreatePostModal from '@/components/community/CreatePostModal';
 import ChallengeCard from '@/components/community/ChallengeCard';
+import AuthGuard from '@/components/AuthGuard';
 
 export default function Community() {
   const queryClient = useQueryClient();
@@ -18,18 +19,26 @@ export default function Community() {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const { data: posts } = useQuery({
-    queryKey: ['communityPosts'],
-    queryFn: () => base44.entities.CommunityPost.list('-created_date')
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    staleTime: 30 * 60 * 1000
   });
 
-  const { data: challenges } = useQuery({
-    queryKey: ['challenges'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.Challenge.filter({ created_by: currentUser.email });
-    }
+  const { data: posts, isLoading: postsLoading } = useQuery({
+    queryKey: ['communityPosts'],
+    queryFn: () => base44.entities.CommunityPost.list('-created_date'),
+    staleTime: 2 * 60 * 1000
   });
+
+  const { data: challenges, isLoading: challengesLoading } = useQuery({
+    queryKey: ['challenges', user?.email],
+    queryFn: () => base44.entities.Challenge.filter({ created_by: user.email }),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000
+  });
+
+  const isLoading = postsLoading || challengesLoading;
 
   const filteredPosts = posts?.filter(post => 
     selectedCategory === 'all' || post.category === selectedCategory
@@ -38,8 +47,26 @@ export default function Community() {
   const activeChallenges = challenges?.filter(c => !c.completed) || [];
   const completedChallenges = challenges?.filter(c => c.completed) || [];
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/20">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="space-y-6">
+            <div className="h-12 bg-slate-200 rounded-xl animate-pulse w-48" />
+            <div className="grid gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-40 bg-slate-200 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/20">
+    <AuthGuard requireProfile={true}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/20">
       <CreatePostModal
         isOpen={showCreatePost}
         onClose={() => setShowCreatePost(false)}
@@ -133,5 +160,6 @@ export default function Community() {
         )}
       </div>
     </div>
+    </AuthGuard>
   );
 }

@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
+import AuthGuard from '@/components/AuthGuard';
 
 export default function NutritionCoach() {
   const navigate = useNavigate();
@@ -65,7 +66,8 @@ export default function NutritionCoach() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
+    <AuthGuard requireProfile={true}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
       <div className="max-w-4xl mx-auto px-4 py-8 overflow-x-hidden">
         <PageHeader
           title={
@@ -220,5 +222,6 @@ export default function NutritionCoach() {
         </Card>
       </div>
     </div>
+    </AuthGuard>
   );
 }

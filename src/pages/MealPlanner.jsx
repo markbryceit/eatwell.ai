@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import DayPlanCard from '@/components/mealplanner/DayPlanCard';
 import RecipeSelector from '@/components/mealplanner/RecipeSelector';
 import ShoppingList from '@/components/mealplanner/ShoppingList';
+import AuthGuard from '@/components/AuthGuard';
 
 export default function MealPlanner() {
   const queryClient = useQueryClient();
@@ -19,15 +20,18 @@ export default function MealPlanner() {
   const [showRecipeSelector, setShowRecipeSelector] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(false);
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    staleTime: 30 * 60 * 1000
+  });
+
   // Fetch user profile
   const { data: profiles } = useQuery({
-    queryKey: ['userProfile'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.UserProfile.filter({ created_by: currentUser.email });
-    },
+    queryKey: ['userProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ created_by: user.email }),
+    enabled: !!user,
     staleTime: 10 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
@@ -35,13 +39,10 @@ export default function MealPlanner() {
 
   // Fetch current meal plan
   const { data: mealPlans, isLoading: planLoading } = useQuery({
-    queryKey: ['mealPlans'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.MealPlan.filter({ is_active: true, created_by: currentUser.email });
-    },
+    queryKey: ['mealPlans', user?.email],
+    queryFn: () => base44.entities.MealPlan.filter({ is_active: true, created_by: user.email }),
+    enabled: !!user,
     staleTime: 5 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
@@ -191,7 +192,8 @@ export default function MealPlanner() {
     : startOfWeek(new Date(), { weekStartsOn: 1 });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
+    <AuthGuard requireProfile={true}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
       <RecipeSelector
         isOpen={showRecipeSelector}
         onClose={() => {
@@ -269,5 +271,6 @@ export default function MealPlanner() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

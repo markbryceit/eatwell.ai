@@ -11,6 +11,7 @@ import GoalCard from '@/components/goals/GoalCard';
 import GoalModal from '@/components/goals/GoalModal';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import AuthGuard from '@/components/AuthGuard';
 
 export default function Goals() {
   const queryClient = useQueryClient();
@@ -18,20 +19,24 @@ export default function Goals() {
   const [editingGoal, setEditingGoal] = useState(null);
   const [activeTab, setActiveTab] = useState('active');
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    staleTime: 30 * 60 * 1000
+  });
+
   const { data: profile } = useQuery({
-    queryKey: ['userProfile'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.UserProfile.filter({ created_by: currentUser.email }).then(p => p[0]);
-    }
+    queryKey: ['userProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ created_by: user.email }).then(p => p[0]),
+    enabled: !!user,
+    staleTime: 10 * 60 * 1000
   });
 
   const { data: goals, isLoading } = useQuery({
-    queryKey: ['goals'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.Goal.filter({ created_by: currentUser.email }, '-created_date');
-    }
+    queryKey: ['goals', user?.email],
+    queryFn: () => base44.entities.Goal.filter({ created_by: user.email }, '-created_date'),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000
   });
 
   const createGoalMutation = useMutation({
@@ -117,7 +122,8 @@ export default function Goals() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
+    <AuthGuard requireProfile={true}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -305,5 +311,6 @@ export default function Goals() {
         userProfile={profile}
       />
     </div>
+    </AuthGuard>
   );
 }

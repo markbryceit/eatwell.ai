@@ -18,6 +18,7 @@ import MacroDistribution from '@/components/progress/MacroDistribution';
 import InsightsPanel from '@/components/progress/InsightsPanel';
 import StreakTracker from '@/components/progress/StreakTracker';
 import FoodLogModal from '@/components/nutrition/FoodLogModal';
+import AuthGuard from '@/components/AuthGuard';
 
 export default function Progress() {
   const queryClient = useQueryClient();
@@ -27,74 +28,82 @@ export default function Progress() {
   const [showFoodLog, setShowFoodLog] = useState(false);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
-  const { data: weightLogs } = useQuery({
-    queryKey: ['weightLogs'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.WeightLog.filter({ created_by: currentUser.email }, '-date');
-    },
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    staleTime: 30 * 60 * 1000
+  });
+
+  const { data: weightLogs, isLoading: weightLoading } = useQuery({
+    queryKey: ['weightLogs', user?.email],
+    queryFn: () => base44.entities.WeightLog.filter({ created_by: user.email }, '-date'),
+    enabled: !!user,
     staleTime: 3 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
-  const { data: exerciseLogs } = useQuery({
-    queryKey: ['exerciseLogs'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.ExerciseLog.filter({ created_by: currentUser.email }, '-date');
-    },
+  const { data: exerciseLogs, isLoading: exerciseLoading } = useQuery({
+    queryKey: ['exerciseLogs', user?.email],
+    queryFn: () => base44.entities.ExerciseLog.filter({ created_by: user.email }, '-date'),
+    enabled: !!user,
     staleTime: 3 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
-  const { data: calorieLogs } = useQuery({
-    queryKey: ['calorieLogs'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.CalorieLog.filter({ created_by: currentUser.email }, '-date');
-    },
+  const { data: calorieLogs, isLoading: calorieLoading } = useQuery({
+    queryKey: ['calorieLogs', user?.email],
+    queryFn: () => base44.entities.CalorieLog.filter({ created_by: user.email }, '-date'),
+    enabled: !!user,
     staleTime: 3 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
-  const { data: profiles } = useQuery({
-    queryKey: ['userProfile'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.UserProfile.filter({ created_by: currentUser.email });
-    },
+  const { data: profiles, isLoading: profileLoading } = useQuery({
+    queryKey: ['userProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ created_by: user.email }),
+    enabled: !!user,
     staleTime: 10 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
-  const { data: bodyMeasurements } = useQuery({
-    queryKey: ['bodyMeasurements'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.BodyMeasurement.filter({ created_by: currentUser.email }, '-date');
-    },
+  const { data: bodyMeasurements, isLoading: bodyLoading } = useQuery({
+    queryKey: ['bodyMeasurements', user?.email],
+    queryFn: () => base44.entities.BodyMeasurement.filter({ created_by: user.email }, '-date'),
+    enabled: !!user,
     staleTime: 3 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
-  const { data: foodLogs } = useQuery({
-    queryKey: ['foodLogs'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.FoodLog.filter({ created_by: currentUser.email }, '-date');
-    },
+  const { data: foodLogs, isLoading: foodLoading } = useQuery({
+    queryKey: ['foodLogs', user?.email],
+    queryFn: () => base44.entities.FoodLog.filter({ created_by: user.email }, '-date'),
+    enabled: !!user,
     staleTime: 2 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
   const profile = profiles?.[0];
   const latestBodyMeasurement = bodyMeasurements?.[0];
+
+  const isLoading = weightLoading || exerciseLoading || calorieLoading || profileLoading || bodyLoading || foodLoading;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="space-y-6">
+            <div className="h-12 bg-slate-200 rounded-xl animate-pulse w-64" />
+            <div className="grid md:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-32 bg-slate-200 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+            <div className="h-96 bg-slate-200 rounded-2xl animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Weight progress calculations
   const latestWeight = weightLogs?.[0]?.weight_kg;
@@ -120,7 +129,8 @@ export default function Progress() {
   })) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
+    <AuthGuard requireProfile={true}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
       <WeightEntryModal
         isOpen={showWeightEntry}
         onClose={() => setShowWeightEntry(false)}
@@ -387,5 +397,6 @@ export default function Progress() {
         )}
       </div>
     </div>
+    </AuthGuard>
   );
 }
