@@ -406,7 +406,7 @@ export default function Recipes() {
               <p className="text-violet-100 text-xs">E.g., "low calorie dinner" or "high protein breakfast"</p>
             </div>
           </div>
-          <div className="flex gap-2">
+
             <Input
               placeholder="Describe what you want..."
               value={smartSearchQuery}

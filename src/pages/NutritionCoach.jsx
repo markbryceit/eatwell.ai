@@ -9,6 +9,7 @@ import { ArrowLeft, Send, Loader2, Sparkles, TrendingUp, Target } from 'lucide-r
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
+import PageHeader from '@/components/common/PageHeader';
 
 export default function NutritionCoach() {
   const navigate = useNavigate();
@@ -66,26 +67,16 @@ export default function NutritionCoach() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
       <div className="max-w-4xl mx-auto px-4 py-8 overflow-x-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(createPageUrl('dashboard'), { replace: true })}
-              className="rounded-xl"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-                <Sparkles className="w-8 h-8 text-emerald-500" />
-                AI Nutrition Coach
-              </h1>
-              <p className="text-slate-500">Personalized guidance based on your data</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title={
+            <span className="flex items-center gap-2">
+              <Sparkles className="w-7 h-7 text-emerald-500" />
+              AI Nutrition Coach
+            </span>
+          }
+          subtitle="Personalized guidance based on your data"
+          backTo="Dashboard"
+        />
 
         {/* Stats Card */}
         {stats && (

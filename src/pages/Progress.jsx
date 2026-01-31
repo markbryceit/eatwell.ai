@@ -6,6 +6,9 @@ import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus, TrendingDown, TrendingUp, Award, Camera, Ruler, Utensils, Dumbbell } from 'lucide-react';
+import PageHeader from '@/components/common/PageHeader';
+import EmptyState from '@/components/common/EmptyState';
+import { CardSkeleton } from '@/components/common/LoadingSkeleton';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, ComposedChart } from 'recharts';
 import { format, subDays, parseISO } from 'date-fns';
 import WeightEntryModal from '@/components/progress/WeightEntryModal';
@@ -148,19 +151,12 @@ export default function Progress() {
       />
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Link to={createPageUrl('dashboard')}>
-              <Button variant="ghost" size="icon" className="rounded-xl">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Progress Tracking</h1>
-              <p className="text-slate-500">Your journey at a glance</p>
-            </div>
-          </div>
-          <div className="flex gap-2">
+        <PageHeader
+          title="Progress Tracking"
+          subtitle="Your journey at a glance"
+          backTo="Dashboard"
+          actions={
+            <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               onClick={() => setShowFoodLog(true)}
@@ -192,8 +188,9 @@ export default function Progress() {
               <Plus className="w-4 h-4 mr-2" />
               Weight
             </Button>
-          </div>
-        </div>
+            </div>
+          }
+        />
 
         {/* Insights and Streaks */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">

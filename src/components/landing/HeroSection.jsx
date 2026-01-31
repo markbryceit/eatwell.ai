@@ -31,13 +31,23 @@ export default function HeroSection({ onGetStarted }) {
               to help you reach your nutrition goals and build lasting healthy habits.
             </p>
 
-            <Button
-              size="lg"
-              onClick={onGetStarted}
-              className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all"
-            >
-              Start Your Journey Free
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button
+                size="lg"
+                onClick={onGetStarted}
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all"
+              >
+                Start Your Journey Free
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={onGetStarted}
+                className="px-8 py-6 text-lg rounded-xl border-2 border-emerald-500/20 hover:bg-emerald-500/5"
+              >
+                Sign In
+              </Button>
+            </div>
 
             {/* Stats */}
             <div className="mt-12 grid grid-cols-3 gap-8">

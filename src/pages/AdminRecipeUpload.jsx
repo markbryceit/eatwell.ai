@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileText, Loader2, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import PageHeader from '@/components/common/PageHeader';
 
 export default function AdminRecipeUpload() {
   const [file, setFile] = useState(null);
@@ -65,18 +66,11 @@ export default function AdminRecipeUpload() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/20">
       <div className="max-w-3xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link to={createPageUrl('Dashboard')}>
-            <Button variant="ghost" size="icon" className="rounded-xl">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Upload Recipe PDF</h1>
-            <p className="text-slate-500">Admin only - Import recipes from PDF documents</p>
-          </div>
-        </div>
+        <PageHeader
+          title="Upload Recipe PDF"
+          subtitle="Admin only - Import recipes from PDF documents"
+          backTo="Dashboard"
+        />
 
         {/* Upload Card */}
         <Card className="bg-white rounded-2xl shadow-lg border-0">
