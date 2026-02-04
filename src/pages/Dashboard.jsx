@@ -28,26 +28,22 @@ export default function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showAlternatives, setShowAlternatives] = useState(null);
   const [showManualSelector, setShowManualSelector] = useState(null);
-  const [user, setUser] = useState(null);
   const [showFoodLog, setShowFoodLog] = useState(false);
-
-  const { data: profiles } = useQuery({
-    queryKey: ['userProfile'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      return base44.entities.UserProfile.filter({ created_by: currentUser.email });
-    },
-    staleTime: 10 * 60 * 1000
-  });
-
-  const profile = profiles?.[0];
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
     staleTime: 30 * 60 * 1000
   });
+
+  const { data: profiles } = useQuery({
+    queryKey: ['userProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ created_by: user.email }),
+    enabled: !!user,
+    staleTime: 10 * 60 * 1000
+  });
+
+  const profile = profiles?.[0];
 
   const { data: mealPlans } = useQuery({
     queryKey: ['mealPlans', user?.email, format(selectedWeekStart, 'yyyy-MM-dd')],

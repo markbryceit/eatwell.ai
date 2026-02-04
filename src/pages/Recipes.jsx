@@ -21,7 +21,6 @@ import { format, startOfWeek, addDays } from 'date-fns';
 
 export default function Recipes() {
   const queryClient = useQueryClient();
-  const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMealType, setSelectedMealType] = useState('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -55,6 +54,12 @@ export default function Recipes() {
   const [generatedRecipe, setGeneratedRecipe] = useState(null);
   const [showGeneratedPreview, setShowGeneratedPreview] = useState(false);
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    staleTime: 30 * 60 * 1000
+  });
+
   const { data: recipes, isLoading: recipesLoading } = useQuery({
     queryKey: ['recipes'],
     queryFn: () => base44.entities.Recipe.list(),
@@ -62,21 +67,16 @@ export default function Recipes() {
   });
 
   const { data: favorites } = useQuery({
-    queryKey: ['favorites'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
-    },
+    queryKey: ['favorites', user?.email],
+    queryFn: () => base44.entities.FavoriteRecipe.filter({ created_by: user.email }),
+    enabled: !!user,
     staleTime: 5 * 60 * 1000
   });
 
   const { data: mealPlans } = useQuery({
-    queryKey: ['mealPlans'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.MealPlan.filter({ is_active: true, created_by: currentUser.email });
-    },
+    queryKey: ['mealPlans', user?.email],
+    queryFn: () => base44.entities.MealPlan.filter({ is_active: true, created_by: user.email }),
+    enabled: !!user,
     staleTime: 5 * 60 * 1000
   });
 
