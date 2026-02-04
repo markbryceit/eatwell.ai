@@ -43,17 +43,22 @@ export default function Dashboard() {
 
   const profile = profiles?.[0];
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    staleTime: 30 * 60 * 1000
+  });
+
   const { data: mealPlans } = useQuery({
-    queryKey: ['mealPlans', format(selectedWeekStart, 'yyyy-MM-dd')],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
+    queryKey: ['mealPlans', user?.email, format(selectedWeekStart, 'yyyy-MM-dd')],
+    queryFn: () => {
       const weekStartStr = format(selectedWeekStart, 'yyyy-MM-dd');
       return base44.entities.MealPlan.filter({ 
         week_start_date: weekStartStr,
-        created_by: currentUser.email 
+        created_by: user.email 
       });
     },
-    enabled: !!profile,
+    enabled: !!user && !!profile,
     staleTime: 5 * 60 * 1000
   });
 
@@ -67,20 +72,16 @@ export default function Dashboard() {
   });
 
   const { data: favorites } = useQuery({
-    queryKey: ['favorites'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.FavoriteRecipe.filter({ created_by: currentUser.email });
-    },
+    queryKey: ['favorites', user?.email],
+    queryFn: () => base44.entities.FavoriteRecipe.filter({ created_by: user.email }),
+    enabled: !!user,
     staleTime: 5 * 60 * 1000
   });
 
   const { data: calorieLogs } = useQuery({
-    queryKey: ['calorieLogs'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.CalorieLog.filter({ created_by: currentUser.email });
-    },
+    queryKey: ['calorieLogs', user?.email],
+    queryFn: () => base44.entities.CalorieLog.filter({ created_by: user.email }),
+    enabled: !!user,
     staleTime: 2 * 60 * 1000
   });
 
@@ -91,11 +92,9 @@ export default function Dashboard() {
   });
 
   const { data: foodLogs } = useQuery({
-    queryKey: ['foodLogs'],
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return base44.entities.FoodLog.filter({ created_by: currentUser.email });
-    },
+    queryKey: ['foodLogs', user?.email],
+    queryFn: () => base44.entities.FoodLog.filter({ created_by: user.email }),
+    enabled: !!user,
     staleTime: 2 * 60 * 1000
   });
 
@@ -330,7 +329,7 @@ export default function Dashboard() {
   };
 
   const generateMealPlan = async (calorieTarget, weekStartDate = null) => {
-    if (!recipes || recipes.length === 0) return;
+    if (!recipes || recipes.length === 0 || !user) return;
 
     try {
       const { data } = await base44.functions.invoke('generateAIMealPlan', {
@@ -344,11 +343,10 @@ export default function Dashboard() {
         date: format(addDays(weekStart, i), 'yyyy-MM-dd')
       }));
 
-      const currentUser = await base44.auth.me();
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
       const oldPlans = await base44.entities.MealPlan.filter({ 
         week_start_date: weekStartStr,
-        created_by: currentUser.email 
+        created_by: user.email 
       });
       for (const plan of oldPlans) {
         await base44.entities.MealPlan.delete(plan.id);
