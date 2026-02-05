@@ -43,7 +43,7 @@ export default function HeroSection({ onGetStarted }) {
                 size="lg"
                 variant="outline"
                 onClick={onGetStarted}
-                className="px-8 py-6 text-lg rounded-xl border-2 border-emerald-500/20 hover:bg-emerald-500/5"
+                className="px-8 py-6 text-lg rounded-xl border-2 border-emerald-500/20 hover:bg-emerald-500/5 text-black hover:text-black"
               >
                 Sign In
               </Button>
