@@ -16,9 +16,13 @@ export default function Home() {
     }
   };
 
+  const handleSignIn = () => {
+    base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+  };
+
   return (
     <div className="min-h-screen">
-      <HeroSection onGetStarted={handleGetStarted} />
+      <HeroSection onGetStarted={handleGetStarted} onSignIn={handleSignIn} />
       <BenefitsSection />
       <HowItWorksSection />
       <CTASection onGetStarted={handleGetStarted} />

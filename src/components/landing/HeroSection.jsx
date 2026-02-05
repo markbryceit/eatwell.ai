@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Zap } from "lucide-react";
 
-export default function HeroSection({ onGetStarted }) {
+export default function HeroSection({ onGetStarted, onSignIn }) {
   return (
     <section className="relative bg-slate-950 text-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 py-24 lg:py-32">
@@ -42,7 +42,7 @@ export default function HeroSection({ onGetStarted }) {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={onGetStarted}
+                onClick={onSignIn}
                 className="px-8 py-6 text-lg rounded-xl border-2 border-emerald-500/20 hover:bg-emerald-500/5 text-black hover:text-black"
               >
                 Sign In
