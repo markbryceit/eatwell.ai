@@ -168,14 +168,18 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
     setIsLoading(true);
     
     try {
+      const dateStr = selectedDate || new Date().toISOString().split('T')[0];
+      const totalCalories = nutritionData.calories * quantity;
+
+      // Create food log entry
       const foodLog = {
-        date: selectedDate || new Date().toISOString().split('T')[0],
+        date: dateStr,
         meal_type: mealType,
         food_name: foodName,
         brand: brand || null,
         serving_size: servingSize,
         quantity: quantity,
-        calories: nutritionData.calories * quantity,
+        calories: totalCalories,
         protein_g: nutritionData.protein_g * quantity,
         carbs_g: nutritionData.carbs_g * quantity,
         fat_g: nutritionData.fat_g * quantity,
@@ -187,11 +191,51 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
       };
 
       await base44.entities.FoodLog.create(foodLog);
+
+      // Update calorie log for the tracker
+      const existingLogs = await base44.entities.CalorieLog.filter({ date: dateStr });
+      const existingLog = existingLogs?.[0];
+
+      if (existingLog) {
+        const meals = existingLog.meals_logged || [];
+        meals.push({
+          meal_type: mealType,
+          recipe_id: null,
+          recipe_name: foodName,
+          calories: totalCalories,
+          completed: true
+        });
+
+        await base44.entities.CalorieLog.update(existingLog.id, {
+          meals_logged: meals,
+          calories_consumed: existingLog.calories_consumed + totalCalories
+        });
+      } else {
+        // Get user profile for calorie target
+        const user = await base44.auth.me();
+        const profiles = await base44.entities.UserProfile.filter({ created_by: user.email });
+        const profile = profiles?.[0];
+
+        await base44.entities.CalorieLog.create({
+          date: dateStr,
+          meals_logged: [{
+            meal_type: mealType,
+            recipe_id: null,
+            recipe_name: foodName,
+            calories: totalCalories,
+            completed: true
+          }],
+          calories_consumed: totalCalories,
+          calorie_target: profile?.daily_calorie_target || 2000
+        });
+      }
+
       toast.success('Food logged successfully!');
       onFoodLogged();
       resetForm();
       onClose();
     } catch (error) {
+      console.error('Error logging food:', error);
       toast.error('Failed to log food');
     }
     
