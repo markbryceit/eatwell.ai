@@ -90,24 +90,25 @@ export default function Progress() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="space-y-6">
-            <div className="h-12 bg-slate-200 rounded-xl animate-pulse w-64" />
-            <div className="grid md:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-32 bg-slate-200 rounded-2xl animate-pulse" />
-              ))}
+      <AuthGuard requireProfile={true}>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20 pb-20 md:pb-6">
+          <div className="max-w-6xl mx-auto px-4 py-8">
+            <div className="space-y-6">
+              <div className="h-12 bg-slate-200 rounded-xl animate-pulse w-64" />
+              <div className="grid md:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-32 bg-slate-200 rounded-2xl animate-pulse" />
+                ))}
+              </div>
+              <div className="h-96 bg-slate-200 rounded-2xl animate-pulse" />
             </div>
-            <div className="h-96 bg-slate-200 rounded-2xl animate-pulse" />
           </div>
+          
+          <MobileNav currentPage="Progress" />
         </div>
-        
-        <MobileNav currentPage="Progress" />
-      </div>
-    </AuthGuard>
-  );
-}
+      </AuthGuard>
+    );
+  }
 
   // Weight progress calculations
   const latestWeight = weightLogs?.[0]?.weight_kg;
@@ -134,8 +135,8 @@ export default function Progress() {
 
   return (
     <AuthGuard requireProfile={true}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
-      <WeightEntryModal
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20 pb-20 md:pb-6">
+        <WeightEntryModal
         isOpen={showWeightEntry}
         onClose={() => setShowWeightEntry(false)}
       />
@@ -164,13 +165,16 @@ export default function Progress() {
         selectedDate={selectedDate}
       />
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <PageHeader
-          title="Progress Tracking"
-          subtitle="Your journey at a glance"
-          backTo="Dashboard"
-          actions={
-            <div className="flex flex-wrap gap-2">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Progress</h1>
+              <p className="text-slate-500">Track your health journey</p>
+            </div>
+            <AppNavigation currentPage="Progress" />
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mb-6">
             <Button
               variant="outline"
               onClick={() => setShowFoodLog(true)}
@@ -202,11 +206,8 @@ export default function Progress() {
               <Plus className="w-4 h-4 mr-2" />
               Weight
             </Button>
-            </div>
-          }
-        />
-
-        {/* Insights and Streaks */}
+          </div>
+          {/* Insights and Streaks */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="md:col-span-2">
             <InsightsPanel
@@ -399,8 +400,10 @@ export default function Progress() {
             </CardContent>
           </Card>
         )}
+        </div>
+        
+        <MobileNav currentPage="Progress" />
       </div>
-    </div>
     </AuthGuard>
   );
 }

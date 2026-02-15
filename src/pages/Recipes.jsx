@@ -601,11 +601,12 @@ export default function Recipes() {
                 Clear Filters
               </Button>
             )}
-        </div>
+          </div>
+        )}
       </div>
       
       <MobileNav currentPage="Recipes" />
     </div>
   </AuthGuard>
-);
+  );
 }
