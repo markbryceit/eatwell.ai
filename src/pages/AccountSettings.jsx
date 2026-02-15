@@ -11,6 +11,9 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import DietaryPreferences from '@/components/settings/DietaryPreferences';
+import AppNavigation from '@/components/dashboard/AppNavigation';
+import MobileNav from '@/components/dashboard/MobileNav';
+import AuthGuard from '@/components/AuthGuard';
 
 export default function AccountSettings() {
   const navigate = useNavigate();
@@ -77,23 +80,16 @@ export default function AccountSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
-      <div className="max-w-3xl mx-auto px-4 py-8 overflow-x-hidden">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8 w-full max-w-full">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.location.href = createPageUrl('Dashboard')}
-            className="rounded-xl"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Account Settings</h1>
-            <p className="text-slate-500">Manage your account information</p>
+    <AuthGuard requireProfile={true}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20 pb-20 md:pb-6">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
+              <p className="text-slate-500">Manage your profile and preferences</p>
+            </div>
+            <AppNavigation currentPage="Settings" />
           </div>
-        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -177,6 +173,7 @@ export default function AccountSettings() {
           </Card>
         </motion.div>
         </div>
+        
         <MobileNav currentPage="Settings" />
       </div>
     </AuthGuard>

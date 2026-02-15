@@ -608,6 +608,7 @@ export default function Recipes() {
           </div>
         )}
         </div>
+        
         <MobileNav currentPage="Recipes" />
       </div>
     </AuthGuard>

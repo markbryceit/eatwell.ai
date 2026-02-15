@@ -12,7 +12,6 @@ import { toast } from 'sonner';
 import AppNavigation from '@/components/dashboard/AppNavigation';
 import MobileNav from '@/components/dashboard/MobileNav';
 import AuthGuard from '@/components/AuthGuard';
-import AuthGuard from '@/components/AuthGuard';
 
 export default function NutritionCoach() {
   const navigate = useNavigate();
@@ -69,18 +68,15 @@ export default function NutritionCoach() {
 
   return (
     <AuthGuard requireProfile={true}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
-      <div className="max-w-4xl mx-auto px-4 py-8 overflow-x-hidden">
-        <PageHeader
-          title={
-            <span className="flex items-center gap-2">
-              <Sparkles className="w-7 h-7 text-emerald-500" />
-              AI Nutrition Coach
-            </span>
-          }
-          subtitle="Personalized guidance based on your data"
-          backTo="Dashboard"
-        />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20 pb-20 md:pb-6">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">AI Coach</h1>
+              <p className="text-slate-500">Get personalized nutrition advice</p>
+            </div>
+            <AppNavigation currentPage="AI Coach" />
+          </div>
 
         {/* Stats Card */}
         {stats && (
@@ -222,8 +218,10 @@ export default function NutritionCoach() {
             </div>
           </CardContent>
         </Card>
+        </div>
+        
+        <MobileNav currentPage="AI Coach" />
       </div>
-    </div>
     </AuthGuard>
   );
 }
