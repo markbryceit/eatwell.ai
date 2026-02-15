@@ -18,6 +18,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { format, startOfWeek, addDays } from 'date-fns';
+import AppNavigation from '@/components/dashboard/AppNavigation';
+import MobileNav from '@/components/dashboard/MobileNav';
+import AuthGuard from '@/components/AuthGuard';
 
 export default function Recipes() {
   const queryClient = useQueryClient();
@@ -260,7 +263,8 @@ export default function Recipes() {
   const cuisineTypes = [...new Set(recipes?.map(r => r.cuisine_type).filter(Boolean))];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
+    <AuthGuard requireProfile={true}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20 pb-20 md:pb-6">
       <RecipeModal
         recipe={selectedRecipe}
         isOpen={!!selectedRecipe}
@@ -358,25 +362,17 @@ export default function Recipes() {
         currentPlan={currentPlan}
       />
 
-      <div className="max-w-6xl mx-auto px-4 py-8 overflow-x-hidden">
+      <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 w-full">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => window.location.href = createPageUrl('Dashboard')}
-              className="rounded-xl"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Recipe Library</h1>
-              <p className="text-slate-500">
-                {recipes?.length || 0} recipes available
-              </p>
-            </div>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Recipes</h1>
+            <p className="text-slate-500">{recipes?.length || 0} recipes available</p>
           </div>
+          <AppNavigation currentPage="Recipes" />
+        </div>
+        
+        <div className="mb-6">
           <div className="flex gap-2 flex-wrap w-full sm:w-auto">
             <Button
               onClick={() => setShowAIGenerator(true)}
@@ -605,12 +601,11 @@ export default function Recipes() {
                 Clear Filters
               </Button>
             )}
-          </div>
-        )}
         </div>
-        
-        <MobileNav currentPage="Recipes" />
       </div>
-    </AuthGuard>
-  );
+      
+      <MobileNav currentPage="Recipes" />
+    </div>
+  </AuthGuard>
+);
 }

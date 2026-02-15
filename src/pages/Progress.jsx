@@ -20,7 +20,6 @@ import MacroDistribution from '@/components/progress/MacroDistribution';
 import InsightsPanel from '@/components/progress/InsightsPanel';
 import StreakTracker from '@/components/progress/StreakTracker';
 import FoodLogModal from '@/components/nutrition/FoodLogModal';
-import AuthGuard from '@/components/AuthGuard';
 
 export default function Progress() {
   const queryClient = useQueryClient();
@@ -103,11 +102,12 @@ export default function Progress() {
             <div className="h-96 bg-slate-200 rounded-2xl animate-pulse" />
           </div>
         </div>
+        
         <MobileNav currentPage="Progress" />
-        </div>
-        </AuthGuard>
-        );
-        }
+      </div>
+    </AuthGuard>
+  );
+}
 
   // Weight progress calculations
   const latestWeight = weightLogs?.[0]?.weight_kg;
