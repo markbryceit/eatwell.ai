@@ -9,7 +9,9 @@ import { ArrowLeft, Send, Loader2, Sparkles, TrendingUp, Target } from 'lucide-r
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
-import PageHeader from '@/components/common/PageHeader';
+import AppNavigation from '@/components/dashboard/AppNavigation';
+import MobileNav from '@/components/dashboard/MobileNav';
+import AuthGuard from '@/components/AuthGuard';
 import AuthGuard from '@/components/AuthGuard';
 
 export default function NutritionCoach() {

@@ -6,7 +6,9 @@ import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus, TrendingDown, TrendingUp, Award, Camera, Ruler, Utensils, Dumbbell } from 'lucide-react';
-import PageHeader from '@/components/common/PageHeader';
+import AppNavigation from '@/components/dashboard/AppNavigation';
+import MobileNav from '@/components/dashboard/MobileNav';
+import AuthGuard from '@/components/AuthGuard';
 import EmptyState from '@/components/common/EmptyState';
 import { CardSkeleton } from '@/components/common/LoadingSkeleton';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, ComposedChart } from 'recharts';
@@ -101,9 +103,11 @@ export default function Progress() {
             <div className="h-96 bg-slate-200 rounded-2xl animate-pulse" />
           </div>
         </div>
-      </div>
-    );
-  }
+        <MobileNav currentPage="Progress" />
+        </div>
+        </AuthGuard>
+        );
+        }
 
   // Weight progress calculations
   const latestWeight = weightLogs?.[0]?.weight_kg;

@@ -176,7 +176,9 @@ export default function AccountSettings() {
             </CardContent>
           </Card>
         </motion.div>
+        </div>
+        <MobileNav currentPage="Settings" />
       </div>
-    </div>
+    </AuthGuard>
   );
 }
