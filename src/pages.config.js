@@ -50,12 +50,12 @@
 import AccountSettings from './pages/AccountSettings';
 import AdminRecipeUpload from './pages/AdminRecipeUpload';
 import Dashboard from './pages/Dashboard';
+import DiningPlanner from './pages/DiningPlanner';
 import Home from './pages/Home';
 import NutritionCoach from './pages/NutritionCoach';
 import Onboarding from './pages/Onboarding';
 import Progress from './pages/Progress';
 import Recipes from './pages/Recipes';
-import DiningPlanner from './pages/DiningPlanner';
 import __Layout from './Layout.jsx';
 
 
@@ -63,12 +63,12 @@ export const PAGES = {
     "AccountSettings": AccountSettings,
     "AdminRecipeUpload": AdminRecipeUpload,
     "Dashboard": Dashboard,
+    "DiningPlanner": DiningPlanner,
     "Home": Home,
     "NutritionCoach": NutritionCoach,
     "Onboarding": Onboarding,
     "Progress": Progress,
     "Recipes": Recipes,
-    "DiningPlanner": DiningPlanner,
 }
 
 export const pagesConfig = {
