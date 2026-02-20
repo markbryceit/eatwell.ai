@@ -29,17 +29,28 @@ Deno.serve(async (req) => {
 
     const prompt = `Find real restaurants in "${location}" that are good for someone with the following profile:
 - Health goal: ${healthGoal}
-- Daily calorie target: ${calorieTarget} kcal
+- Daily calorie target: ${calorieTarget} kcal (so a single meal should ideally be 400–700 kcal)
 ${dietaryInfo ? `- Dietary needs: ${dietaryInfo}` : '- No specific dietary restrictions'}
 
-Please provide 5-6 specific real restaurants in that location. For each restaurant give:
-- Name
-- Cuisine type
-- Why it's a good choice for this person's goals
-- 2-3 specific healthy menu items they should order (with approximate calories if known)
-- Tip for ordering healthily there
+Please provide 4-5 specific real restaurants in that location. For each restaurant give:
 
-Be specific to the actual location "${location}". Only suggest real restaurants that exist there. Format as a helpful, easy-to-read guide.`;
+### [Restaurant Name] — [Cuisine Type]
+**Why it suits your goals:** (1-2 sentences)
+
+**Sample menu items with nutrition estimates:**
+List 4-6 real dishes from their menu with estimated calories, protein, carbs and fat per serving.
+
+**🥗 Option A — Best Choice:**
+Name the single best dish to order, explain why it fits their goals, give calorie + macro estimate, and suggest any modifications (e.g. "ask for dressing on the side").
+
+**🥙 Option B — Runner Up:**
+Name the second best dish, explain why, give calorie + macro estimate, and any smart modifications.
+
+**💡 Ordering Tip:** One practical tip for this specific restaurant.
+
+---
+
+Be specific to the actual location "${location}". Only suggest real restaurants that genuinely exist there. Use your knowledge of their actual menus.`;
 
     const response = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
