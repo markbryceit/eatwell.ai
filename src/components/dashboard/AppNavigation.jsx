@@ -1,7 +1,7 @@
 import React from 'react';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
-import { Home, ChefHat, TrendingUp, Settings, MessageSquare, LogOut } from 'lucide-react';
+import { Home, ChefHat, TrendingUp, Settings, MessageSquare, LogOut, UtensilsCrossed } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function AppNavigation({ currentPage }) {
@@ -10,6 +10,7 @@ export default function AppNavigation({ currentPage }) {
     { name: 'Recipes', icon: ChefHat, url: createPageUrl('Recipes') },
     { name: 'Progress', icon: TrendingUp, url: createPageUrl('Progress') },
     { name: 'AI Coach', icon: MessageSquare, url: createPageUrl('NutritionCoach') },
+    { name: 'Dining Out', icon: UtensilsCrossed, url: createPageUrl('DiningPlanner') },
     { name: 'Settings', icon: Settings, url: createPageUrl('AccountSettings') }
   ];
 
