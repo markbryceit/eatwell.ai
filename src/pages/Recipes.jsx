@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Search, ArrowLeft, Star, Loader2, Plus, Sparkles, X, Flame, ChefHat } from "lucide-react";
+import { Search, Star, Loader2, Plus, Sparkles, X, Flame, ShoppingBag } from "lucide-react";
 import RecipeCard from '@/components/recipes/RecipeCard';
+import PantryPanel from '@/components/recipes/PantryPanel';
 import RecipeModal from '@/components/recipes/RecipeModal';
 import RecipeEditModal from '@/components/recipes/RecipeEditModal';
 import AdvancedFilters from '@/components/recipes/AdvancedFilters';
@@ -56,6 +57,9 @@ export default function Recipes() {
   const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [generatedRecipe, setGeneratedRecipe] = useState(null);
   const [showGeneratedPreview, setShowGeneratedPreview] = useState(false);
+  const [showPantryPanel, setShowPantryPanel] = useState(false);
+  const [pantrySearchResults, setPantrySearchResults] = useState(null);
+  const [isPantrySearching, setIsPantrySearching] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -190,8 +194,9 @@ export default function Recipes() {
     setIsSmartSearching(false);
   };
 
-  const filteredRecipes = (smartSearchResults?.recipes || recipes)?.filter(recipe => {
-    if (smartSearchResults) return true;
+  const activeRecipeList = pantrySearchResults?.recipes || smartSearchResults?.recipes || recipes;
+  const filteredRecipes = activeRecipeList?.filter(recipe => {
+    if (pantrySearchResults || smartSearchResults) return true;
 
     const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       recipe.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -232,11 +237,32 @@ export default function Recipes() {
     });
     setSmartSearchResults(null);
     setSmartSearchQuery('');
+    setPantrySearchResults(null);
   };
 
   const clearSmartSearch = () => {
     setSmartSearchResults(null);
     setSmartSearchQuery('');
+  };
+
+  const handlePantrySearch = async (ingredients) => {
+    setIsPantrySearching(true);
+    setSmartSearchResults(null);
+    setSearchQuery('');
+    try {
+      const { data } = await base44.functions.invoke('pantryRecipeSearch', {
+        pantry_ingredients: ingredients
+      });
+      setPantrySearchResults(data);
+      toast.success(`Found ${data.totalResults} recipes you can mostly make`);
+    } catch (error) {
+      toast.error('Pantry search failed');
+    }
+    setIsPantrySearching(false);
+  };
+
+  const clearPantrySearch = () => {
+    setPantrySearchResults(null);
   };
 
   const handleRecipeGenerated = (recipe) => {
@@ -381,6 +407,14 @@ export default function Recipes() {
               <Sparkles className="w-5 h-5 mr-2" />
               AI Generate
             </Button>
+            <Button
+              onClick={() => { setShowPantryPanel(v => !v); if (pantrySearchResults) clearPantrySearch(); }}
+              variant={showPantryPanel ? 'default' : 'outline'}
+              className={`rounded-xl ${showPantryPanel ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
+            >
+              <ShoppingBag className="w-5 h-5 mr-2" />
+              {pantrySearchResults ? `Pantry (${pantrySearchResults.totalResults})` : 'My Pantry'}
+            </Button>
             {user?.role === 'admin' && (
               <Button
                 onClick={() => setIsCreating(true)}
@@ -392,6 +426,18 @@ export default function Recipes() {
             )}
           </div>
         </div>
+
+        {/* Pantry Panel */}
+        {showPantryPanel && (
+          <div className="mb-6">
+            <PantryPanel
+              user={user}
+              onSearchPantry={handlePantrySearch}
+              isSearching={isPantrySearching}
+              pantryResultCount={pantrySearchResults?.totalResults ?? null}
+            />
+          </div>
+        )}
 
         {/* Smart Search */}
         <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl shadow-lg p-5 mb-6 text-white">
@@ -440,6 +486,12 @@ export default function Recipes() {
           {smartSearchResults && (
             <div className="mt-2.5 text-violet-100 text-xs">
               ✓ Found {smartSearchResults.totalResults} matching recipes
+            </div>
+          )}
+          {pantrySearchResults && (
+            <div className="mt-2.5 text-violet-100 text-xs flex items-center gap-1">
+              <ShoppingBag className="w-3 h-3" />
+              Showing pantry results — <button onClick={clearPantrySearch} className="underline">clear</button>
             </div>
           )}
         </div>
@@ -565,18 +617,29 @@ export default function Recipes() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <RecipeCard
-                    recipe={recipe}
-                    isFavorite={isFavorite(recipe.id)}
-                    onToggleFavorite={() => toggleFavorite.mutate(recipe.id)}
-                    onClick={() => setSelectedRecipe(recipe)}
-                    onEdit={user?.role === 'admin' ? (e) => {
-                      e.stopPropagation();
-                      setEditingRecipe(recipe);
-                    } : null}
-                    onAddToMealPlan={() => setRecipeToAdd(recipe)}
-                    averageRating={getAverageRating(recipe.id)}
-                  />
+                  <div className="relative">
+                    {pantrySearchResults && recipe.matchPercent !== undefined && (
+                      <div className={`absolute top-3 left-3 z-10 text-xs font-bold px-2 py-1 rounded-lg shadow ${
+                        recipe.matchPercent === 100 ? 'bg-emerald-500 text-white' :
+                        recipe.matchPercent >= 75 ? 'bg-teal-500 text-white' :
+                        'bg-amber-400 text-white'
+                      }`}>
+                        {recipe.matchPercent}% match
+                      </div>
+                    )}
+                    <RecipeCard
+                      recipe={recipe}
+                      isFavorite={isFavorite(recipe.id)}
+                      onToggleFavorite={() => toggleFavorite.mutate(recipe.id)}
+                      onClick={() => setSelectedRecipe(recipe)}
+                      onEdit={user?.role === 'admin' ? (e) => {
+                        e.stopPropagation();
+                        setEditingRecipe(recipe);
+                      } : null}
+                      onAddToMealPlan={() => setRecipeToAdd(recipe)}
+                      averageRating={getAverageRating(recipe.id)}
+                    />
+                  </div>
                 </motion.div>
               ))}
             </AnimatePresence>

@@ -1,0 +1,16 @@
+{
+  "name": "Pantry",
+  "type": "object",
+  "properties": {
+    "ingredients": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of ingredients the user currently has on hand"
+    }
+  },
+  "required": [
+    "ingredients"
+  ]
+}
