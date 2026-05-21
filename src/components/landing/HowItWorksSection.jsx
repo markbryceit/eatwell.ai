@@ -12,15 +12,12 @@ export default function HowItWorksSection() {
           viewport={{ once: true }}
           className="text-center mb-20">
 
-          <h2 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6">Deliver Personalised Plans
-At Scale
-
-
-
+          <h2 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6">
+            Everything You Need
+            <span className="block mt-2 bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">In One Place</span>
           </h2>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-            Easily craft meal plans tailored to meet your macro needs and dietary preferences. 
-            Empowering you with personalized nutrition is now a breeze.
+            From AI-generated meal plans to macro tracking and dining out guidance — Dialled In Nutrition covers every angle of your nutrition journey.
           </p>
         </motion.div>
 

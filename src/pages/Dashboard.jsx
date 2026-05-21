@@ -301,6 +301,7 @@ export default function Dashboard() {
   };
 
   const handleGenerateNewPlan = async () => {
+    base44.analytics.track({ eventName: 'meal_plan_generated', properties: { calorie_target: profile?.daily_calorie_target || 2000 } });
     setIsGenerating(true);
     await generateMealPlan(profile?.daily_calorie_target || 2000);
     queryClient.invalidateQueries({ queryKey: ['mealPlans'] });
