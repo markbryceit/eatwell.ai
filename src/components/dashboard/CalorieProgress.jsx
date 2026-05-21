@@ -21,10 +21,10 @@ export default function CalorieProgress({ dailyTarget, consumed, weeklyLogs, mac
   const weeklyDiff = weeklyConsumed - weeklyTarget;
 
   const getStatus = () => {
-    if (percentage < 80) return { color: "text-blue-600", bg: "bg-blue-500", label: "On Track" };
-    if (percentage <= 100) return { color: "text-emerald-600", bg: "bg-emerald-500", label: "Perfect" };
-    if (percentage <= 110) return { color: "text-amber-600", bg: "bg-amber-500", label: "Slightly Over" };
-    return { color: "text-rose-600", bg: "bg-rose-500", label: "Over Target" };
+    if (percentage < 80) return { color: "text-blue-600", badgeClass: "bg-blue-50 text-blue-600", label: "On Track" };
+    if (percentage <= 100) return { color: "text-emerald-600", badgeClass: "bg-emerald-50 text-emerald-600", label: "Perfect" };
+    if (percentage <= 110) return { color: "text-amber-600", badgeClass: "bg-amber-50 text-amber-600", label: "Slightly Over" };
+    return { color: "text-rose-600", badgeClass: "bg-rose-50 text-rose-600", label: "Over Target" };
   };
 
   const status = getStatus();
@@ -45,7 +45,7 @@ export default function CalorieProgress({ dailyTarget, consumed, weeklyLogs, mac
               <span className="text-3xl font-bold text-slate-900">{consumed.toLocaleString()}</span>
               <span className="text-slate-400 ml-1">/ {dailyTarget.toLocaleString()} kcal</span>
             </div>
-            <span className={`text-sm font-medium px-3 py-1 rounded-full ${status.color} bg-opacity-10`} style={{ backgroundColor: `${status.color.replace('text-', '').replace('-600', '')}10` }}>
+            <span className={`text-sm font-medium px-3 py-1 rounded-full ${status.badgeClass}`}>
               {status.label}
             </span>
           </div>

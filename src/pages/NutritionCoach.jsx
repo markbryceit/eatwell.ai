@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Loader2, Sparkles, TrendingUp, Target } from 'lucide-react';
+import { Send, Loader2, Sparkles, Target, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
@@ -14,12 +12,21 @@ import MobileNav from '@/components/dashboard/MobileNav';
 import AuthGuard from '@/components/AuthGuard';
 
 export default function NutritionCoach() {
-  const navigate = useNavigate();
-  const [messages, setMessages] = useState([]);
+
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('coach_messages');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState(null);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    try { sessionStorage.setItem('coach_messages', JSON.stringify(messages)); } catch {}
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -75,7 +82,20 @@ export default function NutritionCoach() {
               <h1 className="text-3xl font-bold text-slate-900">AI Coach</h1>
               <p className="text-slate-500">Get personalized nutrition advice</p>
             </div>
-            <AppNavigation currentPage="AI Coach" />
+            <div className="flex items-center gap-2">
+              {messages.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setMessages([]); setStats(null); sessionStorage.removeItem('coach_messages'); }}
+                  className="text-slate-400 hover:text-rose-500 hover:bg-rose-50"
+                  title="Clear chat"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+              <AppNavigation currentPage="AI Coach" />
+            </div>
           </div>
 
         {/* Stats Card */}

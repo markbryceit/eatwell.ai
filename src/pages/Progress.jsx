@@ -90,23 +90,20 @@ export default function Progress() {
 
   if (isLoading) {
     return (
-      <AuthGuard requireProfile={true}>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20 pb-20 md:pb-6">
-          <div className="max-w-6xl mx-auto px-4 py-8">
-            <div className="space-y-6">
-              <div className="h-12 bg-slate-200 rounded-xl animate-pulse w-64" />
-              <div className="grid md:grid-cols-4 gap-6">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-32 bg-slate-200 rounded-2xl animate-pulse" />
-                ))}
-              </div>
-              <div className="h-96 bg-slate-200 rounded-2xl animate-pulse" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20 pb-20 md:pb-6">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="space-y-6">
+            <div className="h-12 bg-slate-200 rounded-xl animate-pulse w-64" />
+            <div className="grid md:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-32 bg-slate-200 rounded-2xl animate-pulse" />
+              ))}
             </div>
+            <div className="h-96 bg-slate-200 rounded-2xl animate-pulse" />
           </div>
-          
-          <MobileNav currentPage="Progress" />
         </div>
-      </AuthGuard>
+        <MobileNav currentPage="Progress" />
+      </div>
     );
   }
 
@@ -373,7 +370,7 @@ export default function Progress() {
                           {format(parseISO(measurement.date), 'MMM d, yyyy')}
                         </p>
                         <div className="text-2xl font-bold text-blue-600">
-                          {measurement.body_fat_percentage.toFixed(1)}%
+                          {measurement.body_fat_percentage != null ? `${measurement.body_fat_percentage.toFixed(1)}%` : '—'}
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-sm">

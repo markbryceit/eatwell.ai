@@ -497,6 +497,7 @@ export default function Dashboard() {
                 dailyTarget={profile?.daily_calorie_target || 2000}
                 consumed={todayConsumed}
                 macros={todayMacros}
+                weeklyLogs={calorieLogs}
               />
 
               <Card className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg text-white">

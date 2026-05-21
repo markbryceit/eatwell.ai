@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -143,12 +143,16 @@ Deno.serve(async (req) => {
     const prompt = `You are a nutrition AI creating a 7-day meal plan.
 
 USER PROFILE:
-- Dietary preferences: ${userProfile.dietary_preferences?.join(', ') || 'None'}
-- Ingredients to avoid: ${userProfile.disliked_ingredients?.join(', ') || 'None'}
+- Eating style: ${userProfile.eating_style?.join(', ') || 'None'}
+- Allergies: ${userProfile.allergies?.join(', ') || 'None'}
+- Intolerances: ${userProfile.intolerances?.join(', ') || 'None'}
+- Disliked foods: ${userProfile.disliked_foods?.join(', ') || 'None'}
+- Cuisine preferences: ${userProfile.cuisine_preferences?.join(', ') || 'Any'}
 - Disliked recipe IDs: ${userProfile.disliked_recipes?.join(', ') || 'None'}
 - Health goal: ${userProfile.health_goal}
 - Daily calorie target: ${calorie_target} kcal
 - Meals per day: ${mealsPerDay}
+- Max cooking time: ${userProfile.max_cooking_time_mins ? userProfile.max_cooking_time_mins + ' mins' : 'No limit'}
 
 ACTIVE MEALS: ${activeMealTypes.join(', ')}
 
@@ -216,7 +220,7 @@ Daily calorie distribution strategy:
 - If individual meal doesn't hit target, compensate with other meals
 - Better to be slightly off per meal but hit daily target overall`;
 
-    const response = await base44.integrations.Core.InvokeLLM({
+    const response = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: prompt,
       response_json_schema: {
         type: "object",

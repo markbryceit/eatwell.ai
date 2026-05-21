@@ -12,10 +12,10 @@ import MacroRing from './MacroRing';
 import RecipeDiscovery from './RecipeDiscovery';
 
 const mealTypes = [
-  { value: 'breakfast', label: 'Breakfast', color: 'amber' },
-  { value: 'lunch', label: 'Lunch', color: 'emerald' },
-  { value: 'dinner', label: 'Dinner', color: 'violet' },
-  { value: 'snack', label: 'Snack', color: 'rose' }
+  { value: 'breakfast', label: 'Breakfast', activeClass: 'bg-amber-500 text-white' },
+  { value: 'lunch', label: 'Lunch', activeClass: 'bg-emerald-500 text-white' },
+  { value: 'dinner', label: 'Dinner', activeClass: 'bg-violet-500 text-white' },
+  { value: 'snack', label: 'Snack', activeClass: 'bg-rose-500 text-white' }
 ];
 
 export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMealType, selectedDate }) {
@@ -292,7 +292,7 @@ export default function FoodLogModal({ isOpen, onClose, onFoodLogged, defaultMea
                       onClick={() => setMealType(meal.value)}
                       className={`p-3 rounded-xl text-sm font-medium transition-all ${
                         mealType === meal.value
-                          ? `bg-${meal.color}-500 text-white`
+                          ? meal.activeClass
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
