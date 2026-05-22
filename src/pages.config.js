@@ -57,6 +57,7 @@ import Onboarding from './pages/Onboarding';
 import Progress from './pages/Progress';
 import GroceryList from './pages/GroceryList';
 import Recipes from './pages/Recipes';
+import UseWhatYouHave from './pages/UseWhatYouHave';
 import __Layout from './Layout.jsx';
 
 
@@ -71,6 +72,7 @@ export const PAGES = {
     "Progress": Progress,
     "GroceryList": GroceryList,
     "Recipes": Recipes,
+    "UseWhatYouHave": UseWhatYouHave,
 }
 
 export const pagesConfig = {

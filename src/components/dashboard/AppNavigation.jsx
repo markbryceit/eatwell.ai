@@ -1,7 +1,7 @@
 import React from 'react';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
-import { Home, ChefHat, TrendingUp, Settings, MessageSquare, LogOut, UtensilsCrossed, ShoppingCart } from 'lucide-react';
+import { Home, ChefHat, TrendingUp, Settings, MessageSquare, LogOut, UtensilsCrossed, ShoppingCart, Leaf } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function AppNavigation({ currentPage }) {
@@ -12,6 +12,7 @@ export default function AppNavigation({ currentPage }) {
     { name: 'AI Coach', icon: MessageSquare, url: createPageUrl('NutritionCoach') },
     { name: 'Dining Out', icon: UtensilsCrossed, url: createPageUrl('DiningPlanner') },
     { name: 'GroceryList', label: 'Groceries', icon: ShoppingCart, url: createPageUrl('GroceryList') },
+    { name: 'UseWhatYouHave', label: 'Use What You Have', icon: Leaf, url: createPageUrl('UseWhatYouHave') },
     { name: 'Settings', icon: Settings, url: createPageUrl('AccountSettings') }
   ];
 

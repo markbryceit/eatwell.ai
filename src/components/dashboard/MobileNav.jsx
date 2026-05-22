@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPageUrl } from '@/utils';
-import { Home, ChefHat, TrendingUp, MessageSquare, Utensils, Settings, ShoppingCart } from 'lucide-react';
+import { Home, ChefHat, TrendingUp, MessageSquare, Utensils, Settings, ShoppingCart, Leaf } from 'lucide-react';
 
 export default function MobileNav({ currentPage }) {
   const navItems = [
@@ -9,6 +9,7 @@ export default function MobileNav({ currentPage }) {
     { name: 'Progress', icon: TrendingUp, url: createPageUrl('Progress') },
     { name: 'AI Coach', icon: MessageSquare, url: createPageUrl('NutritionCoach') },
     { name: 'GroceryList', label: 'Groceries', icon: ShoppingCart, url: createPageUrl('GroceryList') },
+    { name: 'UseWhatYouHave', label: 'Use What I Have', icon: Leaf, url: createPageUrl('UseWhatYouHave') },
     { name: 'Settings', icon: Settings, url: createPageUrl('AccountSettings') },
   ];
 
