@@ -56,6 +56,7 @@ export default function PantryIngredientEditor({ pantry, isLoading, onUpdated })
     if (toAdd.length > 0) {
       await save([...ingredients, ...toAdd]);
     }
+    // Note: success toast is shown by PantryPhotoScanner after this resolves
   };
 
   return (

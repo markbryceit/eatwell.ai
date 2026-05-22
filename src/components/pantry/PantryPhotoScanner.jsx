@@ -8,31 +8,37 @@ export default function PantryPhotoScanner({ existingIngredients, onAddIngredien
   const [imageUrl, setImageUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalysing, setIsAnalysing] = useState(false);
-  const [detected, setDetected] = useState(null); // array of strings
+  const [detected, setDetected] = useState(null);
   const [selected, setSelected] = useState(new Set());
+  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Reset file input so the same file can be re-selected
+    e.target.value = '';
 
     setIsUploading(true);
     setDetected(null);
     setSelected(new Set());
     setImageUrl(null);
+    setError(null);
 
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setImageUrl(file_url);
+      setIsUploading(false);
       await analyseImage(file_url);
     } catch {
-      toast.error('Failed to upload image');
+      setError('Failed to upload image. Please try again.');
+      setIsUploading(false);
     }
-    setIsUploading(false);
   };
 
   const analyseImage = async (url) => {
     setIsAnalysing(true);
+    setError(null);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `You are a food recognition AI. Carefully examine this image of a fridge, pantry, or kitchen shelves.
@@ -65,7 +71,7 @@ If you cannot clearly identify something, skip it.`,
       // Pre-select all new ones
       setSelected(new Set(newOnes));
     } catch {
-      toast.error('Failed to analyse image');
+      setError('Failed to analyse the image. Please try a clearer photo.');
     }
     setIsAnalysing(false);
   };
@@ -79,12 +85,12 @@ If you cannot clearly identify something, skip it.`,
     });
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     const toAdd = [...selected];
     if (toAdd.length === 0) return;
-    onAddIngredients(toAdd);
-    toast.success(`Added ${toAdd.length} ingredient${toAdd.length > 1 ? 's' : ''} to pantry`);
+    await onAddIngredients(toAdd);
     onClose();
+    toast.success(`Added ${toAdd.length} ingredient${toAdd.length > 1 ? 's' : ''} to pantry`);
   };
 
   const isLoading = isUploading || isAnalysing;
@@ -115,7 +121,6 @@ If you cannot clearly identify something, skip it.`,
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              capture="environment"
               className="hidden"
               onChange={handleFileChange}
             />
@@ -150,6 +155,14 @@ If you cannot clearly identify something, skip it.`,
               <RefreshCw className="w-4 h-4 mr-2" />
               Use a different photo
             </Button>
+          )}
+
+          {/* Error state */}
+          {error && !isLoading && (
+            <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-700">
+              <X className="w-4 h-4 shrink-0" />
+              {error}
+            </div>
           )}
 
           {/* Loading state */}

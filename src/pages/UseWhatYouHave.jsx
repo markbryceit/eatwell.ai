@@ -174,7 +174,7 @@ export default function UseWhatYouHave() {
                     .sort((a, b) => (b.waste_score || 0) - (a.waste_score || 0))
                     .map((recipe, idx) => (
                       <UseWhatRecipeCard
-                        key={idx}
+                        key={recipe.name || idx}
                         recipe={recipe}
                         isExpanded={expandedRecipe === idx}
                         onToggle={() => setExpandedRecipe(expandedRecipe === idx ? null : idx)}
