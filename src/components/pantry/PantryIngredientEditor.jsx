@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, X, ShoppingBag, Loader2 } from 'lucide-react';
+import { Plus, X, ShoppingBag, Loader2, Camera } from 'lucide-react';
 import { toast } from 'sonner';
+import PantryPhotoScanner from './PantryPhotoScanner';
 
 export default function PantryIngredientEditor({ pantry, isLoading, onUpdated }) {
   const [newIngredient, setNewIngredient] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   const ingredients = pantry?.ingredients || [];
 
@@ -48,15 +50,42 @@ export default function PantryIngredientEditor({ pantry, isLoading, onUpdated })
     if (e.key === 'Enter') handleAdd();
   };
 
+  const handlePhotoIngredients = async (newIngredients) => {
+    const existingLower = ingredients.map(i => i.toLowerCase());
+    const toAdd = newIngredients.filter(i => !existingLower.includes(i.toLowerCase()));
+    if (toAdd.length > 0) {
+      await save([...ingredients, ...toAdd]);
+    }
+  };
+
   return (
+    <>
+    {showScanner && (
+      <PantryPhotoScanner
+        existingIngredients={ingredients}
+        onAddIngredients={handlePhotoIngredients}
+        onClose={() => setShowScanner(false)}
+      />
+    )}
     <Card className="border-0 shadow-sm bg-white rounded-2xl">
       <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <ShoppingBag className="w-5 h-5 text-emerald-600" />
-          <span className="font-semibold text-slate-800">My Pantry</span>
-          {ingredients.length > 0 && (
-            <Badge className="bg-emerald-100 text-emerald-700 border-0">{ingredients.length}</Badge>
-          )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShoppingBag className="w-5 h-5 text-emerald-600" />
+            <span className="font-semibold text-slate-800">My Pantry</span>
+            {ingredients.length > 0 && (
+              <Badge className="bg-emerald-100 text-emerald-700 border-0">{ingredients.length}</Badge>
+            )}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowScanner(true)}
+            className="rounded-lg text-xs gap-1.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+          >
+            <Camera className="w-3.5 h-3.5" />
+            Scan Photo
+          </Button>
         </div>
         <p className="text-xs text-slate-400 mt-1">
           What's in your kitchen right now?
@@ -112,5 +141,6 @@ export default function PantryIngredientEditor({ pantry, isLoading, onUpdated })
         )}
       </CardContent>
     </Card>
+    </>
   );
 }
