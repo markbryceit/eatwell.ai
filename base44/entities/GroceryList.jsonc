@@ -1,0 +1,40 @@
+{
+  "name": "GroceryList",
+  "type": "object",
+  "properties": {
+    "meal_plan_id": {
+      "type": "string",
+      "description": "Reference to the meal plan this list was generated from"
+    },
+    "week_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Week start date of the associated meal plan"
+    },
+    "items": {
+      "type": "array",
+      "description": "List of grocery items",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ingredient": {
+            "type": "string"
+          },
+          "recipe_names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "purchased": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "week_start_date",
+    "items"
+  ]
+}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPageUrl } from '@/utils';
-import { Home, ChefHat, TrendingUp, MessageSquare, Utensils, Settings } from 'lucide-react';
+import { Home, ChefHat, TrendingUp, MessageSquare, Utensils, Settings, ShoppingCart } from 'lucide-react';
 
 export default function MobileNav({ currentPage }) {
   const navItems = [
@@ -8,7 +8,7 @@ export default function MobileNav({ currentPage }) {
     { name: 'Recipes', icon: ChefHat, url: createPageUrl('Recipes') },
     { name: 'Progress', icon: TrendingUp, url: createPageUrl('Progress') },
     { name: 'AI Coach', icon: MessageSquare, url: createPageUrl('NutritionCoach') },
-    { name: 'Dining Out', icon: Utensils, url: createPageUrl('DiningPlanner') },
+    { name: 'GroceryList', label: 'Groceries', icon: ShoppingCart, url: createPageUrl('GroceryList') },
     { name: 'Settings', icon: Settings, url: createPageUrl('AccountSettings') },
   ];
 
@@ -33,7 +33,7 @@ export default function MobileNav({ currentPage }) {
                 <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : ''}`} />
               </div>
               <span className={`text-[10px] font-medium leading-none truncate w-full text-center ${isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
-                {item.name === 'Dining Out' ? 'Dining' : item.name}
+                {item.label || (item.name === 'Dining Out' ? 'Dining' : item.name)}
               </span>
             </a>
           );

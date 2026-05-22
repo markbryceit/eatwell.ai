@@ -55,6 +55,7 @@ import Home from './pages/Home';
 import NutritionCoach from './pages/NutritionCoach';
 import Onboarding from './pages/Onboarding';
 import Progress from './pages/Progress';
+import GroceryList from './pages/GroceryList';
 import Recipes from './pages/Recipes';
 import __Layout from './Layout.jsx';
 
@@ -68,6 +69,7 @@ export const PAGES = {
     "NutritionCoach": NutritionCoach,
     "Onboarding": Onboarding,
     "Progress": Progress,
+    "GroceryList": GroceryList,
     "Recipes": Recipes,
 }
 
