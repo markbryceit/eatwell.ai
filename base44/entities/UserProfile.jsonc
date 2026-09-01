@@ -1,0 +1,154 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "height_cm": {
+      "type": "number",
+      "description": "User height in centimeters"
+    },
+    "weight_kg": {
+      "type": "number",
+      "description": "User weight in kilograms"
+    },
+    "age": {
+      "type": "number",
+      "description": "User age in years"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female"
+      ],
+      "description": "Biological sex for BMR calculation"
+    },
+    "activity_level": {
+      "type": "string",
+      "enum": [
+        "sedentary",
+        "light",
+        "moderate",
+        "active",
+        "very_active"
+      ],
+      "description": "Weekly activity level"
+    },
+    "health_goal": {
+      "type": "string",
+      "enum": [
+        "lose_weight",
+        "maintain",
+        "gain_muscle"
+      ],
+      "description": "Primary health objective"
+    },
+    "meals_per_day": {
+      "type": "number",
+      "enum": [
+        2,
+        3,
+        4
+      ],
+      "default": 3,
+      "description": "Number of meals per day (2 = breakfast+dinner, 3 = breakfast+lunch+dinner, 4 = includes snack)"
+    },
+    "eating_style": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Eating style preferences (low carb, high protein, keto, vegan, vegetarian, etc.)"
+    },
+    "allergies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Food allergies (gluten, dairy, shellfish, nuts, etc.)"
+    },
+    "intolerances": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Food intolerances (lactose, fructose, etc.)"
+    },
+    "disliked_foods": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Foods the user dislikes"
+    },
+    "disliked_recipes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Recipe IDs that the user has disliked"
+    },
+    "cooking_skill_level": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced"
+      ],
+      "default": "intermediate",
+      "description": "User's cooking experience level"
+    },
+    "max_cooking_time_mins": {
+      "type": "number",
+      "description": "Maximum time willing to spend cooking (minutes)"
+    },
+    "kitchen_equipment": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Available kitchen equipment (oven, air fryer, instant pot, etc.)"
+    },
+    "cuisine_preferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Preferred cuisine types (italian, mexican, asian, etc.)"
+    },
+    "dietary_preferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Legacy field - dietary restrictions or preferences"
+    },
+    "disliked_ingredients": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Legacy field - ingredients the user dislikes or avoids"
+    },
+    "daily_calorie_target": {
+      "type": "number",
+      "description": "Calculated daily calorie target"
+    },
+    "last_checkin_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last weekly check-in date"
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "description": "Whether user has completed initial setup"
+    }
+  },
+  "required": [
+    "height_cm",
+    "weight_kg",
+    "age",
+    "gender",
+    "activity_level",
+    "health_goal"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "ExerciseLog",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Exercise date"
+    },
+    "activity_type": {
+      "type": "string",
+      "enum": [
+        "walking",
+        "running",
+        "cycling",
+        "swimming",
+        "gym",
+        "yoga",
+        "sports",
+        "other"
+      ],
+      "description": "Type of activity"
+    },
+    "duration_mins": {
+      "type": "number",
+      "description": "Duration in minutes"
+    },
+    "calories_burned": {
+      "type": "number",
+      "description": "Estimated calories burned"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes"
+    }
+  },
+  "required": [
+    "date",
+    "activity_type",
+    "duration_mins"
+  ]
+}

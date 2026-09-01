@@ -1,0 +1,42 @@
+{
+  "name": "FastingLog",
+  "type": "object",
+  "properties": {
+    "start_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the fast started"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the fast ended"
+    },
+    "duration_hours": {
+      "type": "number",
+      "description": "Total duration of fast in hours"
+    },
+    "target_hours": {
+      "type": "number",
+      "description": "Target fasting duration in hours (e.g., 16, 18, 24)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "broken"
+      ],
+      "default": "active",
+      "description": "Status of the fast"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about the fast"
+    }
+  },
+  "required": [
+    "start_time",
+    "status"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "FavoriteRecipe",
+  "type": "object",
+  "properties": {
+    "recipe_id": {
+      "type": "string",
+      "description": "Reference to the favorited recipe"
+    }
+  },
+  "required": [
+    "recipe_id"
+  ]
+}

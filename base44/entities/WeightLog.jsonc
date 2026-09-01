@@ -1,0 +1,23 @@
+{
+  "name": "WeightLog",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Measurement date"
+    },
+    "weight_kg": {
+      "type": "number",
+      "description": "Weight in kilograms"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about the measurement"
+    }
+  },
+  "required": [
+    "date",
+    "weight_kg"
+  ]
+}

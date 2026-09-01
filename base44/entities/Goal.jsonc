@@ -1,0 +1,99 @@
+{
+  "name": "Goal",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Goal title"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "weight_loss",
+        "weight_gain",
+        "muscle_gain",
+        "endurance",
+        "healthy_eating",
+        "calorie_tracking",
+        "exercise_consistency",
+        "water_intake",
+        "sleep_quality",
+        "custom"
+      ],
+      "description": "Goal category"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the goal"
+    },
+    "target_value": {
+      "type": "number",
+      "description": "Target numeric value (e.g., target weight in kg, target days per week)"
+    },
+    "current_value": {
+      "type": "number",
+      "description": "Current progress value"
+    },
+    "start_value": {
+      "type": "number",
+      "description": "Starting value when goal was created"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unit of measurement (kg, days, hours, etc.)"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the goal started"
+    },
+    "target_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Target completion date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "abandoned",
+        "paused"
+      ],
+      "default": "active",
+      "description": "Current status of the goal"
+    },
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number"
+          },
+          "label": {
+            "type": "string"
+          },
+          "achieved": {
+            "type": "boolean"
+          },
+          "achieved_date": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Milestone markers for tracking progress"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or motivation"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "target_value",
+    "start_date",
+    "target_date"
+  ]
+}

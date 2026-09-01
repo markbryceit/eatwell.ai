@@ -1,0 +1,52 @@
+{
+  "name": "CalorieLog",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the log entry"
+    },
+    "calories_consumed": {
+      "type": "number",
+      "description": "Total calories consumed"
+    },
+    "meals_logged": {
+      "type": "array",
+      "description": "Meals logged for the day",
+      "items": {
+        "type": "object",
+        "properties": {
+          "meal_type": {
+            "type": "string"
+          },
+          "recipe_id": {
+            "type": "string"
+          },
+          "recipe_name": {
+            "type": "string"
+          },
+          "calories": {
+            "type": "number"
+          },
+          "completed": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "calorie_target": {
+      "type": "number",
+      "description": "Target calories for the day"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes"
+    }
+  },
+  "required": [
+    "date",
+    "calories_consumed",
+    "calorie_target"
+  ]
+}

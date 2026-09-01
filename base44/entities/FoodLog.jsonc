@@ -1,0 +1,89 @@
+{
+  "name": "FoodLog",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of food consumption"
+    },
+    "meal_type": {
+      "type": "string",
+      "enum": [
+        "breakfast",
+        "lunch",
+        "dinner",
+        "snack"
+      ],
+      "description": "Meal category"
+    },
+    "food_name": {
+      "type": "string",
+      "description": "Name of the food item"
+    },
+    "brand": {
+      "type": "string",
+      "description": "Brand name if applicable"
+    },
+    "serving_size": {
+      "type": "string",
+      "description": "Serving size description"
+    },
+    "quantity": {
+      "type": "number",
+      "default": 1,
+      "description": "Number of servings"
+    },
+    "calories": {
+      "type": "number",
+      "description": "Calories per serving"
+    },
+    "protein_g": {
+      "type": "number",
+      "description": "Protein in grams"
+    },
+    "carbs_g": {
+      "type": "number",
+      "description": "Carbohydrates in grams"
+    },
+    "fat_g": {
+      "type": "number",
+      "description": "Fat in grams"
+    },
+    "fiber_g": {
+      "type": "number",
+      "description": "Fiber in grams"
+    },
+    "sugar_g": {
+      "type": "number",
+      "description": "Sugar in grams"
+    },
+    "sodium_mg": {
+      "type": "number",
+      "description": "Sodium in milligrams"
+    },
+    "barcode": {
+      "type": "string",
+      "description": "Product barcode if scanned"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "barcode",
+        "manual",
+        "ai_estimate",
+        "recipe"
+      ],
+      "description": "How the food was logged"
+    }
+  },
+  "required": [
+    "date",
+    "meal_type",
+    "food_name",
+    "calories",
+    "protein_g",
+    "carbs_g",
+    "fat_g"
+  ]
+}

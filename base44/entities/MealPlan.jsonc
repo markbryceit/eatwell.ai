@@ -1,0 +1,54 @@
+{
+  "name": "MealPlan",
+  "type": "object",
+  "properties": {
+    "week_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Start date of the meal plan week"
+    },
+    "daily_calorie_target": {
+      "type": "number",
+      "description": "Daily calorie target for this plan"
+    },
+    "days": {
+      "type": "array",
+      "description": "7 days of meals",
+      "items": {
+        "type": "object",
+        "properties": {
+          "day_name": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "breakfast_recipe_id": {
+            "type": "string"
+          },
+          "lunch_recipe_id": {
+            "type": "string"
+          },
+          "dinner_recipe_id": {
+            "type": "string"
+          },
+          "snack_recipe_id": {
+            "type": "string"
+          },
+          "total_calories": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Whether this is the current active meal plan"
+    }
+  },
+  "required": [
+    "week_start_date",
+    "daily_calorie_target",
+    "days"
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "name": "Recipe",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Recipe name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the dish"
+    },
+    "meal_type": {
+      "type": "string",
+      "enum": [
+        "breakfast",
+        "lunch",
+        "dinner",
+        "snack"
+      ],
+      "description": "Type of meal"
+    },
+    "cuisine_type": {
+      "type": "string",
+      "enum": [
+        "italian",
+        "mexican",
+        "chinese",
+        "indian",
+        "thai",
+        "japanese",
+        "mediterranean",
+        "american",
+        "french",
+        "greek",
+        "middle_eastern",
+        "korean",
+        "vietnamese",
+        "other"
+      ],
+      "description": "Cuisine style"
+    },
+    "calories": {
+      "type": "number",
+      "description": "Total calories per serving"
+    },
+    "protein_g": {
+      "type": "number",
+      "description": "Protein in grams"
+    },
+    "carbs_g": {
+      "type": "number",
+      "description": "Carbohydrates in grams"
+    },
+    "fat_g": {
+      "type": "number",
+      "description": "Fat in grams"
+    },
+    "fiber_g": {
+      "type": "number",
+      "description": "Fiber in grams"
+    },
+    "prep_time_mins": {
+      "type": "number",
+      "description": "Preparation time in minutes"
+    },
+    "cook_time_mins": {
+      "type": "number",
+      "description": "Cooking time in minutes"
+    },
+    "servings": {
+      "type": "number",
+      "description": "Number of servings"
+    },
+    "ingredients": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of ingredients"
+    },
+    "instructions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Step-by-step cooking instructions"
+    },
+    "dietary_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags like vegetarian, vegan, gluten-free, etc."
+    },
+    "image_url": {
+      "type": "string",
+      "description": "URL to recipe image"
+    },
+    "health_score": {
+      "type": "string",
+      "enum": [
+        "green",
+        "yellow",
+        "red"
+      ],
+      "default": "green",
+      "description": "Health rating based on nutritional density and whole food content"
+    }
+  },
+  "required": [
+    "name",
+    "meal_type",
+    "calories",
+    "protein_g",
+    "carbs_g",
+    "fat_g"
+  ]
+}
